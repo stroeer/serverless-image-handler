@@ -13,7 +13,7 @@
     "sharp": "^0.26.3"
   },
   "devDependencies": {
-    "aws-sdk": "2.712.0",
+    "aws-sdk": "2.841.0",
     "aws-sdk-mock": "^5.1.0",
     "jest": "^26.4.2",
     "mocha": "^8.1.3",
