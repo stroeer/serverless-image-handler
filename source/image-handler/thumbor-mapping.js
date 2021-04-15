@@ -19,11 +19,6 @@ class ThumborMapping {
     process(event) {
         // Setup
         this.path = event.path;
-        let edits = this.path.match(/filters:[^)]+/g);
-        if (!edits) {
-            edits = [];
-        }
-        const filetype = (this.path.split('.'))[(this.path.split('.')).length - 1];
 
         // Process the Dimensions
         const dimPath = this.path.match(/\/(\d+)x(\d+)\//);
@@ -71,7 +66,32 @@ class ThumborMapping {
             }
         }
 
+        // Rounded crops, with optional coordinates
+        const roundedImages = this.path.match(/\/roundCrop(:(\d+)x(\d+):(\d+)x(\d+))?\//);
+        if (roundedImages) {
+            const left = Number(cropping[1])
+            const top = Number(cropping[2])
+            const r_x = Number(cropping[3])
+            const r_y = Number(cropping[4])
+
+            if (!isNaN(left) && !isNaN(top) && !isNaN(r_x) && !isNaN(r_y)) {
+                this.edits.roundCrop = {
+                    left: left,
+                    top: top,
+                    r_x: r_x,
+                    r_y: r_y
+                };
+            } else {
+                this.edits.roundCrop = {};
+            }
+        }
+
         // Parse the image path
+        let edits = this.path.match(/filters:[^)]+/g);
+        if (!edits) {
+            edits = [];
+        }
+        const filetype = (this.path.split('.'))[(this.path.split('.')).length - 1];
         for (let i = 0; i < edits.length; i++) {
             const edit = `${edits[i]})`;
             this.mapFilter(edit, filetype);
