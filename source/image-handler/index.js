@@ -12,7 +12,6 @@ const ImageHandler = require("./image-handler.js");
 exports.handler = async (event) => {
   logger.registerCloudwatchEvent(event);
 
-  logger.debug("Received Event from ApiGateway", event);
   const imageRequest = new ImageRequest(s3);
   const imageHandler = new ImageHandler(s3, rekognition);
   const isAlb = event.requestContext && event.requestContext.hasOwnProperty("elb");

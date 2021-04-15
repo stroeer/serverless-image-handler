@@ -90,6 +90,7 @@ class ImageRequest {
    */
   async getOriginalImage(bucket, key) {
     const imageLocation = {Bucket: bucket, Key: key};
+    logger.info(imageLocation)
     try {
       const originalImage = await this.s3.getObject(imageLocation).promise();
 
@@ -259,12 +260,16 @@ class ImageRequest {
           path = path.replace(matchPattern, substitution);
         }
       }
-      return decodeURIComponent(
-        path
-          .replace(/\d+x\d+:\d+x\d+|\d+x\d+|filters:[^)]+|fit-in|roundCrop/g, "")
-          .replace(/\)/g, "")
-          .replace(/^\/+/, "")
-      );
+      path = path
+        .replace(/\d+x\d+:\d+x\d+|\d+x\d+|(filters|roundCrop):[^)]+|fit-in/g, "")
+        .replace(/\)/g, "")
+        .replace(/^\/+/, "")
+        .replace(/\/+/g, "/");
+
+      if (path.match(/^\d{4}\/\d{2}\/.*\/[\w-]+\.\w+$/)){
+        path = path.replace(/(.*)\/[\w-]+(\.\w+)$/, "$1/image$2");
+      }
+      return decodeURIComponent(path);
     }
 
     // Return an error for all other conditions
