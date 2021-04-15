@@ -171,93 +171,7 @@ describe('setup()', function () {
       expect(imageRequest).toEqual(expectedResult);
     });
   });
-  describe('005/thumborImageRequest/cropping', function () {
-    it('Should pass when a thumbor image request is provided and populate the ImageRequest object with the proper values', async function () {
-      // Arrange
-      const event = {
-        path: "/0x1:200x201/fit-in/300x400/test-image-001.jpg"
-      }
-      process.env = {
-        SOURCE_BUCKETS: "allowedBucket001, allowedBucket002"
-      }
-      // Mock
-      mockAws.getObject.mockImplementationOnce(() => {
-        return {
-          promise() {
-            return Promise.resolve({Body: Buffer.from('SampleImageContent\n')});
-          }
-        };
-      });
-      // Act
-      const imageRequest = new ImageRequest(s3, secretsManager);
-      await imageRequest.setup(event);
-      const expectedResult = {
-        requestType: 'Thumbor',
-        bucket: 'allowedBucket001',
-        key: 'test-image-001.jpg',
-        edits: {
-          resize: {
-            fit: "inside",
-            width: 300,
-            height: 400
-          }
-        },
-        cropping: {
-          left: 0,
-          top: 1,
-          width: 200,
-          height: 201
-        },
-        originalImage: Buffer.from('SampleImageContent\n'),
-        CacheControl: 'max-age=31536000,public',
-        ContentType: 'image'
-      }
-      // Assert
-      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'allowedBucket001', Key: 'test-image-001.jpg'});
-      expect(imageRequest).toEqual(expectedResult);
-    });
-  });
-  describe('005/thumborImageRequest/round', function () {
-    it('Should pass when a thumbor image request is provided and populate the ImageRequest object with the proper values', async function () {
-      // Arrange
-      const event = {
-        path: "/filters:round(1x2:3x4)/test-image-001.jpg"
-      }
-      process.env = {
-        SOURCE_BUCKETS: "allowedBucket001, allowedBucket002"
-      }
-      // Mock
-      mockAws.getObject.mockImplementationOnce(() => {
-        return {
-          promise() {
-            return Promise.resolve({Body: Buffer.from('SampleImageContent\n')});
-          }
-        };
-      });
-      // Act
-      const imageRequest = new ImageRequest(s3, secretsManager);
-      await imageRequest.setup(event);
-      const expectedResult = {
-        requestType: 'Thumbor',
-        bucket: 'allowedBucket001',
-        key: 'test-image-001.jpg',
-        edits: {
-          roundCrop: {
-            left: 1,
-            top: 2,
-            rx: 3,
-            ry: 4
-          }
-        },
-        originalImage: Buffer.from('SampleImageContent\n'),
-        CacheControl: 'max-age=31536000,public',
-        ContentType: 'image'
-      }
-      // Assert
-      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'allowedBucket001', Key: 'test-image-001.jpg'});
-      expect(imageRequest).toEqual(expectedResult);
-    });
-  });
+
   describe('005/customImageRequest', function () {
     it('Should pass when a custom image request is provided and populate the ImageRequest object with the proper values', async function () {
       // Arrange
@@ -697,7 +611,94 @@ describe('parseImageEdits()', function () {
       expect(result).toEqual(expectedResult);
     });
   });
-  describe('003/customRequestType', function () {
+  describe('003/thumborRequestCropping', function () {
+    it('Should pass when a thumbor image request is provided and populate the ImageRequest object with the proper values for cropping', async function () {
+      // Arrange
+      const event = {
+        path: "/0x1:200x201/fit-in/300x400/test-image-001.jpg"
+      }
+      process.env = {
+        SOURCE_BUCKETS: "allowedBucket001, allowedBucket002"
+      }
+      // Mock
+      mockAws.getObject.mockImplementationOnce(() => {
+        return {
+          promise() {
+            return Promise.resolve({Body: Buffer.from('SampleImageContent\n')});
+          }
+        };
+      });
+      // Act
+      const imageRequest = new ImageRequest(s3, secretsManager);
+      await imageRequest.setup(event);
+      const expectedResult = {
+        requestType: 'Thumbor',
+        bucket: 'allowedBucket001',
+        key: 'test-image-001.jpg',
+        edits: {
+          resize: {
+            fit: "inside",
+            width: 300,
+            height: 400
+          }
+        },
+        cropping: {
+          left: 0,
+          top: 1,
+          width: 200,
+          height: 201
+        },
+        originalImage: Buffer.from('SampleImageContent\n'),
+        CacheControl: 'max-age=31536000,public',
+        ContentType: 'image'
+      }
+      // Assert
+      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'allowedBucket001', Key: 'test-image-001.jpg'});
+      expect(imageRequest).toEqual(expectedResult);
+    });
+  });
+  describe('004/thumborRequestRoundCrop', function () {
+    it('Should pass when a thumbor image request is provided and populate the ImageRequest object with the proper values for roundCrop', async function () {
+      // Arrange
+      const event = {
+        path: "/filters:round(1x2:3x4)/test-image-001.jpg"
+      }
+      process.env = {
+        SOURCE_BUCKETS: "allowedBucket001, allowedBucket002"
+      }
+      // Mock
+      mockAws.getObject.mockImplementationOnce(() => {
+        return {
+          promise() {
+            return Promise.resolve({Body: Buffer.from('SampleImageContent\n')});
+          }
+        };
+      });
+      // Act
+      const imageRequest = new ImageRequest(s3, secretsManager);
+      await imageRequest.setup(event);
+      const expectedResult = {
+        requestType: 'Thumbor',
+        bucket: 'allowedBucket001',
+        key: 'test-image-001.jpg',
+        edits: {
+          roundCrop: {
+            left: 1,
+            top: 2,
+            rx: 3,
+            ry: 4
+          }
+        },
+        originalImage: Buffer.from('SampleImageContent\n'),
+        CacheControl: 'max-age=31536000,public',
+        ContentType: 'image'
+      }
+      // Assert
+      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'allowedBucket001', Key: 'test-image-001.jpg'});
+      expect(imageRequest).toEqual(expectedResult);
+    });
+  });
+  describe('005/customRequestType', function () {
     it('Should pass if the proper result is returned for a sample custom-type image request', function () {
       // Arrange
       const event = {
@@ -716,7 +717,7 @@ describe('parseImageEdits()', function () {
       expect(result).toEqual(expectedResult);
     });
   });
-  describe('004/customRequestType', function () {
+  describe('006/customRequestType', function () {
     it('Should throw an error if a requestType is not specified and/or the image edits cannot be parsed', function () {
       // Arrange
       const event = {
@@ -834,6 +835,40 @@ describe('parseImageKey()', function () {
           message: 'The image you specified could not be found. Please check your request syntax as well as the bucket you specified to ensure it exists.'
         });
       }
+    });
+  });
+  describe('007/alterKeyForMasterImage', function () {
+    it('Should pass when a when the key was replaced with the default image.ext when using our pattern', async function () {
+      // Arrange
+      const event = {
+        path: "2021/04/media_id/test-image-001.jpg"
+      }
+      process.env = {
+        SOURCE_BUCKETS: "allowedBucket001"
+      }
+      // Mock
+      mockAws.getObject.mockImplementationOnce(() => {
+        return {
+          promise() {
+            return Promise.resolve({Body: Buffer.from('SampleImageContent\n')});
+          }
+        };
+      });
+      // Act
+      const imageRequest = new ImageRequest(s3, secretsManager);
+      await imageRequest.setup(event);
+      const expectedResult = {
+        requestType: 'Thumbor',
+        bucket: 'allowedBucket001',
+        key: '2021/04/media_id/image.jpg',
+        edits: {},
+        originalImage: Buffer.from('SampleImageContent\n'),
+        CacheControl: 'max-age=31536000,public',
+        ContentType: 'image'
+      }
+      // Assert
+      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'allowedBucket001', Key: '2021/04/media_id/image.jpg'});
+      expect(imageRequest).toEqual(expectedResult);
     });
   });
 });
