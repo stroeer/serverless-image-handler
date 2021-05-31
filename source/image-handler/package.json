@@ -15,7 +15,7 @@
   "devDependencies": {
     "aws-sdk": "2.887.0",
     "jest": "^26.4.2",
-    "sinon": "^10.0.0"
+    "sinon": "^11.1.1"
   },
   "scripts": {
     "pretest": "npm run build:init && npm install",
