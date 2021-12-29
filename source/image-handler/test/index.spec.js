@@ -1,15 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-const mockAws = {
-  getObject: jest.fn(),
-  headObject: jest.fn(),
-}
+const mockS3 = jest.fn();
 jest.mock('aws-sdk', () => {
   return {
     S3: jest.fn(() => ({
-      getObject: mockAws.getObject,
-      headObject: mockAws.headObject
+      getObject: mockS3
     })),
     Rekognition: jest.fn(),
     SecretsManager: jest.fn()
@@ -20,17 +16,6 @@ jest.mock('aws-sdk', () => {
 const index = require('../index.js');
 
 describe('index', function () {
-  beforeEach(() => {
-    mockAws.getObject.mockReset();
-    // Mock
-    mockAws.headObject.mockImplementation(() => {
-      return {
-        promise() {
-          return Promise.resolve({});
-        }
-      };
-    });
-  })
   // Arrange
   process.env.SOURCE_BUCKETS = 'source-bucket';
   const mockImage = Buffer.from('SampleImageContent\n');
@@ -39,7 +24,7 @@ describe('index', function () {
   describe('TC: Success', function () {
     beforeEach(() => {
       // Mock
-      mockAws.getObject.mockImplementationOnce(() => {
+      mockS3.mockImplementationOnce(() => {
         return {
           promise() {
             return Promise.resolve({
@@ -73,7 +58,7 @@ describe('index', function () {
         body: mockImage.toString('base64')
       };
       // Assert
-      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
+      expect(mockS3).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
       expect(result).toEqual(expectedResult);
     });
     it('002/should return the image with custom headers when custom headers are provided', async function () {
@@ -99,7 +84,7 @@ describe('index', function () {
         isBase64Encoded: true
       };
       // Assert
-      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
+      expect(mockS3).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
       expect(result).toEqual(expectedResult);
     });
     it('003/should return the image when the request is from ALB', async function () {
@@ -126,7 +111,7 @@ describe('index', function () {
         body: mockImage.toString('base64')
       };
       // Assert
-      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
+      expect(mockS3).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
       expect(result).toEqual(expectedResult);
     });
   });
@@ -138,7 +123,7 @@ describe('index', function () {
         path: '/test.jpg'
       };
       // Mock
-      mockAws.getObject.mockImplementationOnce(() => {
+      mockS3.mockImplementationOnce(() => {
         return {
           promise() {
             return Promise.reject({
@@ -168,7 +153,7 @@ describe('index', function () {
         })
       };
       // Assert
-      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
+      expect(mockS3).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
       expect(result).toEqual(expectedResult);
     });
     it('002/should return 500 error when there is no error status in the error', async function () {
@@ -177,7 +162,7 @@ describe('index', function () {
         path: 'eyJidWNrZXQiOiJzb3VyY2UtYnVja2V0Iiwia2V5IjoidGVzdC5qcGciLCJlZGl0cyI6eyJ3cm9uZ0ZpbHRlciI6dHJ1ZX19'
       };
       // Mock
-      mockAws.getObject.mockImplementationOnce(() => {
+      mockS3.mockImplementationOnce(() => {
         return {
           promise() {
             return Promise.resolve({
@@ -206,7 +191,7 @@ describe('index', function () {
         })
       };
       // Assert
-      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
+      expect(mockS3).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
       expect(result).toEqual(expectedResult);
     });
     it('003/should return the default fallback image when an error occurs if the default fallback image is enabled', async function () {
@@ -220,8 +205,8 @@ describe('index', function () {
         path: '/test.jpg'
       };
       // Mock
-      mockAws.getObject.mockReset();
-      mockAws.getObject.mockImplementationOnce(() => {
+      mockS3.mockReset();
+      mockS3.mockImplementationOnce(() => {
         return {
           promise() {
             return Promise.reject('UnknownError');
@@ -254,8 +239,8 @@ describe('index', function () {
         body: mockFallbackImage.toString('base64')
       };
       // Assert
-      expect(mockAws.getObject).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
-      expect(mockAws.getObject).toHaveBeenNthCalledWith(2, {
+      expect(mockS3).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
+      expect(mockS3).toHaveBeenNthCalledWith(2, {
         Bucket: 'fallback-image-bucket',
         Key: 'fallback-image.png'
       });
@@ -267,8 +252,8 @@ describe('index', function () {
         path: '/test.jpg'
       };
       // Mock
-      mockAws.getObject.mockReset();
-      mockAws.getObject.mockImplementation(() => {
+      mockS3.mockReset();
+      mockS3.mockImplementation(() => {
         return {
           promise() {
             return Promise.reject({
@@ -299,8 +284,8 @@ describe('index', function () {
         })
       };
       // Assert
-      expect(mockAws.getObject).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
-      expect(mockAws.getObject).toHaveBeenNthCalledWith(2, {
+      expect(mockS3).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
+      expect(mockS3).toHaveBeenNthCalledWith(2, {
         Bucket: 'fallback-image-bucket',
         Key: 'fallback-image.png'
       });
@@ -313,7 +298,7 @@ describe('index', function () {
         path: '/test.jpg'
       };
       // Mock
-      mockAws.getObject.mockImplementationOnce(() => {
+      mockS3.mockImplementationOnce(() => {
         return {
           promise() {
             return Promise.reject({
@@ -344,7 +329,7 @@ describe('index', function () {
         })
       };
       // Assert
-      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
+      expect(mockS3).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
       expect(result).toEqual(expectedResult);
     });
     it('006/should return an error JSON when the default fallback image bucket is not provided if the default fallback image is enabled', async function () {
@@ -354,7 +339,7 @@ describe('index', function () {
         path: '/test.jpg'
       };
       // Mock
-      mockAws.getObject.mockImplementationOnce(() => {
+      mockS3.mockImplementationOnce(() => {
         return {
           promise() {
             return Promise.reject({
@@ -385,7 +370,7 @@ describe('index', function () {
         })
       };
       // Assert
-      expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
+      expect(mockS3).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
       expect(result).toEqual(expectedResult);
     });
   });
@@ -398,7 +383,7 @@ describe('index', function () {
       }
     };
     // Mock
-    mockAws.getObject.mockImplementationOnce(() => {
+    mockS3.mockImplementationOnce(() => {
       return {
         promise() {
           return Promise.reject({
@@ -428,7 +413,7 @@ describe('index', function () {
       })
     };
     // Assert
-    expect(mockAws.getObject).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
+    expect(mockS3).toHaveBeenCalledWith({Bucket: 'source-bucket', Key: 'test.jpg'});
     expect(result).toEqual(expectedResult);
   })
 
@@ -440,8 +425,8 @@ describe('index', function () {
       path: '/test.jpg'
     };
     // Mock
-    mockAws.getObject.mockReset();
-    mockAws.getObject.mockImplementationOnce(() => {
+    mockS3.mockReset();
+    mockS3.mockImplementationOnce(() => {
       return {
         promise() {
           return Promise.resolve({
@@ -468,7 +453,7 @@ describe('index', function () {
       body: '{"message":"HTTP/410. Content test.jpg has expired.","code":"Gone","status":410}'
     };
     // Assert
-    expect(mockAws.getObject).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
+    expect(mockS3).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
     expect(result).toEqual(expectedResult);
   })
   it('009/should set expired header and reduce max-age if content is about to expire', async function () {
@@ -487,8 +472,8 @@ describe('index', function () {
       path: '/test.jpg'
     };
     // Mock
-    mockAws.getObject.mockReset();
-    mockAws.getObject.mockImplementationOnce(() => {
+    mockS3.mockReset();
+    mockS3.mockImplementationOnce(() => {
       return {
         promise() {
           return Promise.resolve({
@@ -518,7 +503,7 @@ describe('index', function () {
       body: mockImage.toString('base64')
     };
     // Assert
-    expect(mockAws.getObject).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
+    expect(mockS3).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
     expect(result).toEqual(expectedResult);
     expect(dateNowStub).toHaveBeenCalled();
     global.Date.now = realDateNow;
@@ -539,25 +524,17 @@ describe('index', function () {
       path: '/test.jpg'
     };
     // Mock
-    mockAws.getObject.mockReset();
-    mockAws.headObject.mockImplementationOnce(() => {
-      return {
-        promise() {
-          return Promise.resolve({
-            Metadata: {
-              'buzz-status-code': '410'
-            }
-          });
-        }
-      }
-    })
-    mockAws.getObject.mockImplementationOnce(() => {
+    mockS3.mockReset();
+    mockS3.mockImplementationOnce(() => {
       return {
         promise() {
           return Promise.resolve({
             Body: mockImage,
             ContentType: 'image/png',
-            ETag: '"foo"'
+            ETag: '"foo"',
+            Metadata: {
+              'buzz-status-code': '410'
+            }
           });
         }
       }
@@ -578,8 +555,7 @@ describe('index', function () {
       isBase64Encoded: false,
     };
     // Assert
-    expect(mockAws.getObject).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
-    expect(mockAws.headObject).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
+    expect(mockS3).toHaveBeenNthCalledWith(1, {Bucket: 'source-bucket', Key: 'test.jpg'});
 
     expect(result).toEqual(expectedResult);
     expect(dateNowStub).toHaveBeenCalled();
