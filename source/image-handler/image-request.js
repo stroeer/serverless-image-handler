@@ -260,8 +260,7 @@ class ImageRequest {
         }
       }
       path = path
-        .replace(/\d+x\d+:\d+x\d+|\d+x\d+|(filters|roundCrop):[^)]+|fit-in/g, "")
-        .replace(/\)/g, "")
+        .replace(/\/\d+x\d+:\d+x\d+\/|\/\d+x\d+\/|\/(filters|roundCrop):[^\/]+|\/fit-in\//g, "")
         .replace(/^\/+/, "")
         .replace(/\/+/g, "/");
 
