@@ -11,7 +11,7 @@
     "sharp": "0.29.2"
   },
   "devDependencies": {
-    "jest": "^26.4.2",
+    "jest": "^28.1.0",
     "aws-sdk": "2.887.0",
     "sinon": "^10.0.0"
   },
