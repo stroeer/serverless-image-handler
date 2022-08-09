@@ -295,8 +295,8 @@ class ImageRequest {
   parseRequestType(event) {
     const path = event["path"];
     const matchDefault = new RegExp(/^(\/?)([0-9a-zA-Z+\/]{4})*(([0-9a-zA-Z+\/]{2}==)|([0-9a-zA-Z+\/]{3}=))?$/);
-    const matchThumbor = new RegExp(/^(\/?)((fit-in)?|(filters:.+\(.?\))?|(unsafe)?).*(\.+jpg|\.+png|\.+webp|\.tiff|\.jpeg|\.svg|\.gif)$/i);
-    const matchCustom = new RegExp(/(\/?)(.*)(jpg|png|webp|tiff|jpeg|svg|gif)/i);
+    const matchThumbor = new RegExp(/^(\/?)((fit-in)?|(filters:.+\(.?\))?|(unsafe)?).*(\.+jpg|\.+png|\.+webp|\.tiff|\.jpeg|\.svg|\.gif|\.avif)$/i);
+    const matchCustom = new RegExp(/(\/?)(.*)(jpg|png|webp|tiff|jpeg|svg|gif|avif)/i);
 
     const definedEnvironmentVariables =
       process.env.REWRITE_MATCH_PATTERN !== "" &&
@@ -326,7 +326,7 @@ class ImageRequest {
         status: 400,
         code: "RequestTypeError",
         message:
-          "The type of request you are making could not be processed. Please ensure that your original image is of a supported file type (jpg, png, tiff, webp, svg, gif) and that your image request is provided in the correct syntax. Refer to the documentation for additional guidance on forming image requests."
+          "The type of request you are making could not be processed. Please ensure that your original image is of a supported file type (jpg, png, tiff, webp, svg, gif, avif) and that your image request is provided in the correct syntax. Refer to the documentation for additional guidance on forming image requests."
       };
     }
   }
@@ -404,7 +404,7 @@ class ImageRequest {
    * Return the output format depending on the accepts headers and request type
    * @param {Object} event - The request body.
    */
-   getOutputFormat(event) {
+  getOutputFormat(event) {
     const autoWebP = process.env.AUTO_WEBP;
     const autoAvif = process.env.AUTO_AVIF;
     let accept = event.headers
@@ -449,7 +449,7 @@ class ImageRequest {
           status: 500,
           code: "RequestTypeError",
           message:
-            "The file does not have an extension and the file type could not be inferred. Please ensure that your original image is of a supported file type (jpg, png, tiff, webp, svg). Refer to the documentation for additional guidance on forming image requests.",
+            "The file does not have an extension and the file type could not be inferred. Please ensure that your original image is of a supported file type (jpg, png, tiff, webp, svg, avif). Refer to the documentation for additional guidance on forming image requests.",
         };
     }
   }
