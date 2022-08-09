@@ -15,6 +15,7 @@ class ImageRequest {
    * @param {object} event - Lambda request body.
    */
   async setup(event) {
+
     this.requestType = this.parseRequestType(event);
     this.bucket = this.parseImageBucket(event, this.requestType);
     this.key = this.parseImageKey(event, this.requestType);
@@ -22,20 +23,17 @@ class ImageRequest {
     this.cropping = this.parseCropping(event, this.requestType);
     this.originalImage = await this.getOriginalImage(this.bucket, this.key);
     this.headers = this.parseImageHeaders(event, this.requestType);
-    this.isAlb =
-      event.requestContext && event.requestContext.hasOwnProperty("elb");
+    this.isAlb = event.requestContext && event.requestContext.hasOwnProperty("elb");
 
     if (!this.headers) {
       delete this.headers;
     }
 
     // If the original image is SVG file and it has any edits but no output format, change the format to WebP.
-    if (
-      this.ContentType === "image/svg+xml" &&
+    if (this.ContentType === "image/svg+xml" &&
       this.edits &&
       Object.keys(this.edits).length > 0 &&
-      !this.edits.toFormat
-    ) {
+      !this.edits.toFormat) {
       this.outputFormat = "png";
     }
 
@@ -44,11 +42,7 @@ class ImageRequest {
      * 2) If headers contain "Accept: image/webp", the output format is webp.
      * 3) Use the default image format for the rest of cases.
      */
-    if (
-      this.ContentType !== "image/svg+xml" ||
-      this.edits.toFormat ||
-      this.outputFormat
-    ) {
+    if (this.ContentType !== 'image/svg+xml' || this.edits.toFormat || this.outputFormat) {
       let outputFormat = this.getOutputFormat(event);
       if (this.edits && this.edits.toFormat) {
         this.outputFormat = this.edits.toFormat;
@@ -60,7 +54,7 @@ class ImageRequest {
     // Fix quality for Thumbor and Custom request type if outputFormat is different from quality type.
     if (this.outputFormat) {
       const requestType = ["Custom", "Thumbor"];
-      const acceptedValues = ["jpeg", "png", "webp", "tiff", "heif", "avif"];
+      const acceptedValues = ["jpeg", "png", "webp", "tiff", "heif"];
 
       this.ContentType = `image/${this.outputFormat}`;
       if (
@@ -90,18 +84,15 @@ class ImageRequest {
    * @return {Promise} - The original image or an error.
    */
   async getOriginalImage(bucket, key) {
-    const imageLocation = { Bucket: bucket, Key: key };
+    const imageLocation = {Bucket: bucket, Key: key};
     try {
       const originalImage = await this.s3.getObject(imageLocation).promise();
-      const metaData = originalImage["Metadata"];
-      const isGone =
-        metaData &&
-        metaData["buzz-status-code"] &&
-        metaData["buzz-status-code"] === "410";
+      const metaData = originalImage['Metadata'];
+      const isGone = metaData && metaData['buzz-status-code'] && metaData['buzz-status-code'] === '410'
 
       if (originalImage.ContentType) {
         // If using default s3 ContentType infer from hex headers
-        if (originalImage.ContentType === "binary/octet-stream") {
+        if (originalImage.ContentType === 'binary/octet-stream') {
           const imageBuffer = Buffer.from(originalImage.Body);
           this.ContentType = this.inferImageType(imageBuffer);
         } else {
@@ -114,7 +105,7 @@ class ImageRequest {
       if (originalImage.Expires) {
         this.Expires = new Date(originalImage.Expires);
       } else if (isGone) {
-        logger.warn(`Content ${imageLocation} is gone`);
+        logger.warn(`Content ${imageLocation} is gone`)
         this.Expires = new Date(0);
       }
 
@@ -136,8 +127,8 @@ class ImageRequest {
     } catch (err) {
       throw {
         status: "NoSuchKey" === err.code ? 404 : 500,
-        code: err.code.toString(),
-        message: err.message,
+        code: (err.code).toString(),
+        message: err.message
       };
     }
   }
@@ -165,7 +156,7 @@ class ImageRequest {
             status: 403,
             code: "ImageBucket::CannotAccessBucket",
             message:
-              "The bucket you specified could not be accessed. Please check that the bucket is specified in your SOURCE_BUCKETS.",
+              "The bucket you specified could not be accessed. Please check that the bucket is specified in your SOURCE_BUCKETS."
           };
         }
       } else {
@@ -182,7 +173,7 @@ class ImageRequest {
         status: 404,
         code: "ImageBucket::CannotFindBucket",
         message:
-          "The bucket you specified could not be found. Please check the spelling of the bucket name in your request.",
+          "The bucket you specified could not be found. Please check the spelling of the bucket name in your request."
       };
     }
   }
@@ -210,7 +201,7 @@ class ImageRequest {
         status: 400,
         code: "ImageEdits::CannotParseEdits",
         message:
-          "The edits you provided could not be parsed. Please check the syntax of your request and refer to the documentation for additional guidance.",
+          "The edits you provided could not be parsed. Please check the syntax of your request and refer to the documentation for additional guidance."
       };
     }
   }
@@ -233,7 +224,7 @@ class ImageRequest {
         status: 400,
         code: "Cropping::CannotParseCropping",
         message:
-          "The cropping you provided could not be parsed. Please check the syntax of your request and refer to the documentation for additional guidance.",
+          "The cropping you provided could not be parsed. Please check the syntax of your request and refer to the documentation for additional guidance."
       };
     }
   }
@@ -252,7 +243,7 @@ class ImageRequest {
     }
 
     if (requestType === "Thumbor" || requestType === "Custom") {
-      let { path } = event;
+      let {path} = event;
 
       if (requestType === "Custom") {
         const matchPattern = process.env.REWRITE_MATCH_PATTERN;
@@ -261,10 +252,7 @@ class ImageRequest {
         if (typeof matchPattern === "string") {
           const patternStrings = matchPattern.split("/");
           const flags = patternStrings.pop();
-          const parsedPatternString = matchPattern.slice(
-            1,
-            matchPattern.length - 1 - flags.length
-          );
+          const parsedPatternString = matchPattern.slice(1, matchPattern.length - 1 - flags.length);
           const regExp = new RegExp(parsedPatternString, flags);
           path = path.replace(regExp, substitution);
         } else {
@@ -283,7 +271,7 @@ class ImageRequest {
         path = path.replace(/(.*)\/[\w-]+(\.\w+)$/, "$1/image$2");
       }
       if (path.endsWith("/")) {
-        path = path + "image.jpg";
+        path = path + "image.jpg"
       }
       return decodeURIComponent(path);
     }
@@ -293,7 +281,7 @@ class ImageRequest {
       status: 404,
       code: "ImageEdits::CannotFindImage",
       message:
-        "The image you specified could not be found. Please check your request syntax as well as the bucket you specified to ensure it exists.",
+        "The image you specified could not be found. Please check your request syntax as well as the bucket you specified to ensure it exists."
     };
   }
 
@@ -306,15 +294,9 @@ class ImageRequest {
    */
   parseRequestType(event) {
     const path = event["path"];
-    const matchDefault = new RegExp(
-      /^(\/?)([0-9a-zA-Z+\/]{4})*(([0-9a-zA-Z+\/]{2}==)|([0-9a-zA-Z+\/]{3}=))?$/
-    );
-    const matchThumbor = new RegExp(
-      /^(\/?)((fit-in)?|(filters:.+\(.?\))?|(unsafe)?).*(\.+jpg|\.+png|\.+webp|\.tiff|\.jpeg|\.svg|\.gif)$/i
-    );
-    const matchCustom = new RegExp(
-      /(\/?)(.*)(jpg|png|webp|tiff|jpeg|svg|gif)/i
-    );
+    const matchDefault = new RegExp(/^(\/?)([0-9a-zA-Z+\/]{4})*(([0-9a-zA-Z+\/]{2}==)|([0-9a-zA-Z+\/]{3}=))?$/);
+    const matchThumbor = new RegExp(/^(\/?)((fit-in)?|(filters:.+\(.?\))?|(unsafe)?).*(\.+jpg|\.+png|\.+webp|\.tiff|\.jpeg|\.svg|\.gif)$/i);
+    const matchCustom = new RegExp(/(\/?)(.*)(jpg|png|webp|tiff|jpeg|svg|gif)/i);
 
     const definedEnvironmentVariables =
       process.env.REWRITE_MATCH_PATTERN !== "" &&
@@ -330,8 +312,7 @@ class ImageRequest {
       isBase64Encoded = false;
     }
 
-    if (matchDefault.test(path) && isBase64Encoded) {
-      // use sharp
+    if (matchDefault.test(path) && isBase64Encoded) {  // use sharp
       // use sharp
       return "Default";
     } else if (matchCustom.test(path) && definedEnvironmentVariables) {
@@ -345,7 +326,7 @@ class ImageRequest {
         status: 400,
         code: "RequestTypeError",
         message:
-          "The type of request you are making could not be processed. Please ensure that your original image is of a supported file type (jpg, png, tiff, webp, svg, gif) and that your image request is provided in the correct syntax. Refer to the documentation for additional guidance on forming image requests.",
+          "The type of request you are making could not be processed. Please ensure that your original image is of a supported file type (jpg, png, tiff, webp, svg, gif) and that your image request is provided in the correct syntax. Refer to the documentation for additional guidance on forming image requests."
       };
     }
   }
@@ -385,7 +366,7 @@ class ImageRequest {
           status: 400,
           code: "DecodeRequest::CannotDecodeRequest",
           message:
-            "The image request you provided could not be decoded. Please check that your request is base64 encoded properly and refer to the documentation for additional guidance.",
+            "The image request you provided could not be decoded. Please check that your request is base64 encoded properly and refer to the documentation for additional guidance."
         };
       }
     } else {
@@ -393,7 +374,7 @@ class ImageRequest {
         status: 400,
         code: "DecodeRequest::CannotReadPath",
         message:
-          "The URL path you provided could not be read. Please ensure that it is properly formed according to the solution documentation.",
+          "The URL path you provided could not be read. Please ensure that it is properly formed according to the solution documentation."
       };
     }
   }
@@ -410,7 +391,7 @@ class ImageRequest {
         status: 400,
         code: "GetAllowedSourceBuckets::NoSourceBuckets",
         message:
-          "The SOURCE_BUCKETS variable could not be read. Please check that it is not empty and contains at least one source bucket, or multiple buckets separated by commas. Spaces can be provided between commas and bucket names, these will be automatically parsed out when decoding.",
+          "The SOURCE_BUCKETS variable could not be read. Please check that it is not empty and contains at least one source bucket, or multiple buckets separated by commas. Spaces can be provided between commas and bucket names, these will be automatically parsed out when decoding."
       };
     } else {
       const formatted = sourceBuckets.replace(/\s+/g, "");
@@ -423,7 +404,7 @@ class ImageRequest {
    * Return the output format depending on the accepts headers and request type
    * @param {Object} event - The request body.
    */
-  getOutputFormat(event) {
+   getOutputFormat(event) {
     const autoWebP = process.env.AUTO_WEBP;
     const autoAvif = process.env.AUTO_AVIF;
     let accept = event.headers
@@ -445,7 +426,7 @@ class ImageRequest {
    * Return the output format depending on first four hex values of an image file.
    * @param {Buffer} imageBuffer - Image buffer.
    */
-  inferImageType(imageBuffer) {
+   inferImageType(imageBuffer) {
     switch (imageBuffer.toString("hex").substring(0, 8).toUpperCase()) {
       case "89504E47":
         return "image/png";
