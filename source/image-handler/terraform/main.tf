@@ -7,7 +7,7 @@ locals {
 
 module "lambda" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws"
-  version = "6.9.1"
+  version = "6.10.0"
 
   architectures                      = ["x86_64"]
   cloudwatch_lambda_insights_enabled = true
@@ -79,7 +79,7 @@ resource "aws_lambda_alias" "this" {
 
 module "deployment" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment"
-  version = "6.9.1"
+  version = "6.10.0"
 
   alias_name                         = aws_lambda_alias.this.name
   codestar_notifications_target_arn  = data.aws_sns_topic.notifications.arn
