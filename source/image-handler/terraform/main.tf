@@ -10,7 +10,9 @@ module "lambda" {
   version = "6.10.0"
 
   architectures                     = ["x86_64"]
+  layers                            = ["arn:aws:lambda:eu-west-1:053041861227:layer:CustomLoggingExtensionOpenSearch-Amd64:7"]
   cloudwatch_logs_retention_in_days = 1
+  cloudwatch_logs_enabled           = false
   description                       = "provider of cute kitty pics."
   function_name                     = local.function_name
   ignore_external_function_updates  = true
@@ -29,13 +31,13 @@ module "lambda" {
       CORS_ENABLED   = "Yes"
       CORS_ORIGIN    = "*"
       SOURCE_BUCKETS = aws_s3_bucket.images.bucket
+      OPEN_SEARCH_URL = "https://${data.aws_opensearch_domain.logs.endpoint}"
     }
   }
 
-  cloudwatch_log_subscription_filters = {
-    opensearch = {
-      destination_arn = data.aws_lambda_function.log_streaming.arn
-    }
+  vpc_config = {
+    security_group_ids = [data.aws_security_group.vpc_endpoints.id, data.aws_security_group.all_outbound.id, data.aws_security_group.logs.id]
+    subnet_ids         = data.aws_subnets.selected.ids
   }
 }
 
