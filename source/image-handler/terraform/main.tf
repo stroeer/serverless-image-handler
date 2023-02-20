@@ -10,7 +10,7 @@ module "lambda" {
   version = "6.10.0"
 
   architectures                     = ["x86_64"]
-  layers                            = ["arn:aws:lambda:eu-west-1:053041861227:layer:CustomLoggingExtensionOpenSearch-Amd64:7"]
+  layers                            = ["arn:aws:lambda:eu-west-1:053041861227:layer:CustomLoggingExtensionOpenSearch-Amd64:9"]
   cloudwatch_logs_retention_in_days = 1
   cloudwatch_logs_enabled           = false
   description                       = "provider of cute kitty pics."
@@ -31,7 +31,11 @@ module "lambda" {
       CORS_ENABLED   = "Yes"
       CORS_ORIGIN    = "*"
       SOURCE_BUCKETS = aws_s3_bucket.images.bucket
-      OPEN_SEARCH_URL = "https://${data.aws_opensearch_domain.logs.endpoint}"
+
+      LOG_EXT_OPEN_SEARCH_URL        = "https://${data.aws_opensearch_domain.logs.endpoint}"
+      LOG_EXT_BUFFERING_TIMEOUT      = "30000"
+      LOG_EXT_BUFFERING_MAX_BYTES    = "1048576"
+      LOG_EXT_BUFFERING_MAX_ITEMS    = "10000"
     }
   }
 
