@@ -43,10 +43,6 @@ data "aws_security_group" "all_outbound" {
   name = "allow-outbound-tcp"
 }
 
-data "aws_security_group" "logs" {
-  name = "application-logs-vpc"
-}
-
-data "aws_opensearch_domain" "logs" {
-  domain_name = "application-logs-vpc"
+data "aws_security_group" "lambda" {
+  name = "lambda-default"
 }
