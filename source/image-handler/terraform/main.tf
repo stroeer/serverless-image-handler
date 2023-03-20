@@ -80,7 +80,7 @@ resource "aws_lambda_alias" "this" {
 
 module "deployment" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment"
-  version = "6.10.0"
+  version = "6.11.0"
 
   alias_name                                  = aws_lambda_alias.this.name
   codebuild_cloudwatch_logs_retention_in_days = 7
