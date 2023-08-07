@@ -7,6 +7,10 @@ variable "region" {
   }
 }
 
+variable "account_id" {
+  type = string
+}
+
 variable "app_suffix" {
   description = "Deployment variant"
   type        = string

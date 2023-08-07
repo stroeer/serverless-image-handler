@@ -2,7 +2,7 @@ locals {
   function_name = "image-thumbs${var.app_suffix}"
   environment   = "production"
   zip_package   = "../target/lambda/arm64/thumbs/bootstrap.zip"
-  s3_key        = "image-handler/${local.function_name}.zip"
+  s3_key        = "image-thumbs/${local.function_name}.zip"
 }
 
 module "lambda" {
@@ -16,7 +16,7 @@ module "lambda" {
   cloudwatch_logs_enabled          = false
   description                      = "provider of cute kitty thumbs."
   function_name                    = local.function_name
-  ignore_external_function_updates = false
+  ignore_external_function_updates = true
   memory_size                      = 1024
   publish                          = true
   runtime                          = "provided.al2"
@@ -64,6 +64,23 @@ resource "aws_s3_object" "this" {
   key    = local.s3_key
   source = local.zip_package
   etag   = filemd5(local.zip_package)
+
+  lifecycle {
+    ignore_changes = [etag, source, version_id, tags_all]
+  }
+}
+
+module "deployment" {
+  source  = "registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment"
+  version = "6.10.0"
+
+  alias_name                                  = aws_lambda_alias.this.name
+  codebuild_cloudwatch_logs_retention_in_days = 7
+  codestar_notifications_target_arn           = data.aws_sns_topic.notifications.arn
+  codepipeline_artifact_store_bucket          = data.aws_s3_bucket.pipeline_artifacts.bucket
+  s3_bucket                                   = data.aws_s3_bucket.ci.bucket
+  s3_key                                      = local.s3_key
+  function_name                               = local.function_name
 }
 
 resource "opensearch_role" "logs_write_access" {
