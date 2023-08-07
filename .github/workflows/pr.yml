@@ -6,10 +6,10 @@ on:
       - "**.tf"
 
 jobs:
-  build:
+  img-handler:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -29,3 +29,23 @@ jobs:
         run: make npm/test
       - name: install
         run: make build
+
+  thumbs:
+    env:
+      CARGO_TERM_COLOR: always
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: --locked cargo-lambda
+      - uses: actions-rs/cargo@v1
+        with:
+          command: lambda build
+          args: --arm64 --release --output-format zip --lambda-dir target/lambda/arm64 ;

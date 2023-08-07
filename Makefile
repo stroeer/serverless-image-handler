@@ -25,7 +25,13 @@ npm/test ::
 	cd $(WORK_DIR) && npm run test
 
 build ::
-	cd $(WORK_DIR) && npm run build
+	cd $(WORK_DIR) && if [ -f 'package.json' ] ; then \
+		npm run build ; \
+	elif [ -f 'Cargo.toml' ]; then \
+		cargo lambda build --arm64 --release --output-format zip --lambda-dir target/lambda/arm64 ; \
+	else \
+		echo 'Unknown SERVICE/Build: $(SERVICE). Aborting.' ; exit 1 ; \
+	fi
 
 tf ::
 	rm -f $(WORK_DIR)/terraform/.terraform/terraform.tfstate || true
