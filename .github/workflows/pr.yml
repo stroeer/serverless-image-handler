@@ -37,7 +37,6 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: source/thumbs
     steps:
       - uses: actions/checkout@v3
       - name: Setup Rust
@@ -60,4 +59,4 @@ jobs:
       - name: install cargo lambda
         run: pip3 install cargo-lambda
       - name: cargo lambda build
-        run: cargo lambda build --arm64 --release --output-format zip --lambda-dir target/lambda/arm64
+        run: make build SERVICE=thumbs
