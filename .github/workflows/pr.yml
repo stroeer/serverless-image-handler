@@ -41,11 +41,7 @@ jobs:
         with:
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: --locked cargo-lambda
-      - uses: actions-rs/cargo@v1
-        with:
-          command: lambda build
-          args: --arm64 --release --output-format zip --lambda-dir target/lambda/arm64 ;
+      - name: install cargo lambda
+        run: pip3 install cargo-lambda
+      - name: cargo lambda build
+        run: cargo lambda build --arm64 --release --output-format zip --lambda-dir target/lambda/arm64
