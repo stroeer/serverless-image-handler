@@ -10,7 +10,7 @@ module "lambda" {
   version = "6.11.0"
 
   architectures = ["arm64"]
-  layers        = [
+  layers = [
     "arn:aws:lambda:eu-west-1:053041861227:layer:CustomLoggingExtensionOpenSearch-Arm64:10"
   ]
   cloudwatch_logs_enabled          = false
@@ -25,7 +25,6 @@ module "lambda" {
   s3_key                           = local.s3_key
   s3_object_version                = aws_s3_object.this.version_id
   timeout                          = 30
-
 
   environment = {
     variables = {
@@ -51,6 +50,15 @@ resource "aws_lambda_function_url" "production" {
     allow_methods = ["GET"]
     allow_origins = ["*"]
   }
+}
+
+resource "aws_lambda_permission" "function_url_allow_public_access" {
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_alias.this.function_name
+  qualifier              = aws_lambda_alias.this.name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+  statement_id           = "FunctionURLAllowPublicAccess"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

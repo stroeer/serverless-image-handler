@@ -47,6 +47,16 @@ resource "aws_lambda_function_url" "production" {
   qualifier          = aws_lambda_alias.this.name
 }
 
+resource "aws_lambda_permission" "function_url_allow_public_access" {
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_alias.this.function_name
+  qualifier              = aws_lambda_alias.this.name
+  principal              = "*"
+  function_url_auth_type = "NONE"
+  statement_id           = "FunctionURLAllowPublicAccess"
+}
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # Deployment resources
 # ---------------------------------------------------------------------------------------------------------------------

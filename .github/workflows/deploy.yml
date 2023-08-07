@@ -43,10 +43,14 @@ jobs:
         run: make npm/install
       - name: install
         run: make npm/test
-      - name: install
+      - name: build
         run: make build
 
       - name: configure aws credentials
+        # 📌 Runs only if:
+        # 1. is a 'push to main'
+        # 2. did not run in a fork
+        if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'stroeer' }}
         uses: aws-actions/configure-aws-credentials@master
         with:
           role-to-assume: arn:aws:iam::053041861227:role/github-s3-access-eu-west-1
@@ -90,6 +94,18 @@ jobs:
         run: pip3 install cargo-lambda
       - name: cargo lambda build
         run: make build SERVICE=thumbs
+
+      - name: configure aws credentials
+        # 📌 Runs only if:
+        # 1. is a 'push to main'
+        # 2. did not run in a fork
+        if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'stroeer' }}
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::053041861227:role/github-s3-access-eu-west-1
+          role-session-name: GitHubActions
+          aws-region: eu-west-1
+
       - name: s3 upload artefact
         # 📌 Runs only if:
         # 1. is a 'push to main'

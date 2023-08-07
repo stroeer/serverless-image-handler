@@ -26,7 +26,7 @@ npm/test ::
 
 build ::
 	cd $(WORK_DIR) && if [ -f 'package.json' ] ; then \
-		npm run build ; \
+		npm run test && npm run build ; \
 	elif [ -f 'Cargo.toml' ]; then \
 		cargo lambda build --arm64 --release --output-format zip --lambda-dir target/lambda/arm64 ; \
 	else \
