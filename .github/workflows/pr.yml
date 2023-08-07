@@ -34,6 +34,10 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: source/thumbs
     steps:
       - uses: actions/checkout@v3
       - name: Setup Rust
@@ -41,6 +45,18 @@ jobs:
         with:
           toolchain: stable
           override: true
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
       - name: install cargo lambda
         run: pip3 install cargo-lambda
       - name: cargo lambda build
