@@ -16,7 +16,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-  # read+write needed for `aws-actions/configure-aws-credentials` to work
+# read+write needed for `aws-actions/configure-aws-credentials` to work
 permissions:
   id-token: write
   contents: read
