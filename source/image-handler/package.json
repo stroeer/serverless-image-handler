@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "sinon": "^16.0.0"
+    "sinon": "^17.0.1"
   },
   "scripts": {
     "pretest": "npm run build:init && npm install",
