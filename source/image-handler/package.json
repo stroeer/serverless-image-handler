@@ -9,7 +9,7 @@
     "color": "4.2.3",
     "color-name": "1.1.4",
     "sharp": "0.32.6",
-    "aws-sdk": "2.1470.0"
+    "aws-sdk": "2.1510.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",
