@@ -8,7 +8,7 @@
   "dependencies": {
     "color": "4.2.3",
     "color-name": "1.1.4",
-    "sharp": "0.32.6",
+    "sharp": "0.33.0",
     "aws-sdk": "2.1470.0"
   },
   "devDependencies": {
