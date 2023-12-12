@@ -17,7 +17,7 @@ module "lambda" {
   ignore_external_function_updates = true
   memory_size                      = 1024
   publish                          = true
-  runtime                          = "nodejs18.x"
+  runtime                          = "nodejs20.x"
   handler                          = "index.handler"
   s3_bucket                        = aws_s3_object.this.bucket
   s3_key                           = aws_s3_object.this.key
