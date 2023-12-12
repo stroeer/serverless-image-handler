@@ -155,8 +155,8 @@ export class ImageRequest {
       return imageBuffer;
     } catch (err: any) {
       throw {
-        status: "NoSuchKey" === err.code ? 404 : 500,
-        code: (err.code).toString(),
+        status: "NoSuchKey" === (err?.code || err?.Code || err).toString() ? 404 : 500,
+        code: (err?.code || err?.Code || err).toString(),
         message: err.message
       };
     }

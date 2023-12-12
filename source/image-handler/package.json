@@ -8,9 +8,7 @@
   "dependencies": {
     "@aws-sdk/client-rekognition": "3.433.0",
     "@aws-sdk/client-s3": "3.433.0",
-    "color": "4.2.3",
-    "color-name": "1.1.4",
-    "sharp": "0.32.6"
+    "sharp": "0.33.0"
   },
   "devDependencies": {
     "@aws-lambda-powertools/logger": "1.14.0",
@@ -28,7 +26,7 @@
     "pretest": "npm i --quiet",
     "build:init": "rm -rf package-lock.json dist/ coverage/",
     "build:zip": "pushd dist && zip -r image-handler.zip *.js node_modules && popd",
-    "build": "npm run build:init && npm install --arch=arm64 --platform=linux --production && tsup && npm run build:zip",
+    "build": "npm run build:init && npm install --cpu=arm64 --os=linux && tsup && npm install --cpu=arm64 --os=linux --prefix dist sharp && npm run build:zip",
     "test": "vitest run",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\""
   },
