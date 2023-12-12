@@ -182,7 +182,7 @@ describe('process()', () => {
       const result = await imageHandler.process(request);
       // Assert
       const metadata = await sharp(Buffer.from(result, 'base64')).metadata();
-      expect(metadata).not.toHaveProperty('orientation');
+      expect(metadata.orientation).toEqual(1); // = 0 degrees: the correct orientation, no adjustment is required.
     });
   });
   describe('008/CropOutOfBounds', () => {
