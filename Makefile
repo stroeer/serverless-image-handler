@@ -19,7 +19,7 @@ clean ::
 	@cd $(WORK_DIR) && rm -rf ./dist/ ./node_modules/
 
 npm/install ::
-	cd $(WORK_DIR) && npm install
+	cd $(WORK_DIR) && npm install --cpu=arm64 --os=linux --libc=musl
 
 npm/test ::
 	cd $(WORK_DIR) && npm run test
