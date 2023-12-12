@@ -25,7 +25,7 @@
   "scripts": {
     "pretest": "npm i --quiet",
     "build:init": "rm -rf package-lock.json dist/ coverage/",
-    "build:zip": "pushd dist && zip -r image-handler.zip *.js node_modules && popd",
+    "build:zip": "cd dist && zip -r image-handler.zip *.js node_modules",
     "build": "npm run build:init && npm install --cpu=arm64 --os=linux && tsup && npm install --cpu=arm64 --os=linux --prefix dist sharp && npm run build:zip",
     "test": "vitest run",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\""
