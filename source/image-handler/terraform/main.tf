@@ -10,7 +10,7 @@ module "lambda" {
   version = "7.2.0"
 
   architectures                    = ["arm64"]
-  layers = ["arn:aws:lambda:eu-west-1:053041861227:layer:CustomLoggingExtensionOpenSearch-Arm64:10",]
+  layers                           = [nonsensitive(data.aws_ssm_parameter.logging_layer.value)]
   cloudwatch_logs_enabled          = false
   description                      = "provider of cute kitty pics."
   function_name                    = local.function_name
@@ -19,8 +19,8 @@ module "lambda" {
   publish                          = true
   runtime                          = "nodejs18.x"
   handler                          = "index.handler"
-  s3_bucket                        = data.aws_s3_bucket.ci.bucket
-  s3_key                           = local.s3_key
+  s3_bucket                        = aws_s3_object.this.bucket
+  s3_key                           = aws_s3_object.this.key
   s3_object_version                = aws_s3_object.this.version_id
   timeout                          = 30
 
@@ -29,7 +29,7 @@ module "lambda" {
       AUTO_WEBP      = "Yes"
       CORS_ENABLED   = "Yes"
       CORS_ORIGIN    = "*"
-      SOURCE_BUCKETS = aws_s3_bucket.images.bucket
+      SOURCE_BUCKETS = "master-images-${var.account_id}-${var.region}"
 
       LOG_EXT_OPEN_SEARCH_URL = "https://logs.stroeer.engineering"
     }
