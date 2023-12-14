@@ -9,7 +9,7 @@ import sharp from 'sharp';
 import {LogStashFormatter} from "./lib/logging/LogStashFormatter";
 
 const logger = new Logger({
-  serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME ?? '',
+  serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME ?? 'image-handler',
   logFormatter: new LogStashFormatter(),
 })
 
@@ -81,7 +81,13 @@ export class ImageHandler {
       if ('image/webp' === request['ContentType'] && request.outputFormat === "webp") {
         image.webp({effort: 6, alphaQuality: 75});
       } else if ("image/png" === request['ContentType']) {
-        image.png({quality: 80, effort: 9, compressionLevel: 9});
+        // <html
+        //     for_each in xls
+        //       timing (per image)
+        //       sizes (per image)
+        //       <img>
+        //   >
+        image.png({quality: 90, effort: 7, compressionLevel: 7});
       } else if ("image/jpeg" === request['ContentType']) {
         image.jpeg({mozjpeg: true});
       } else if (request.outputFormat !== undefined) {

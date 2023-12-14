@@ -98,7 +98,7 @@ export class ThumborMapping {
    * @param {string} path - The URL path extracted from the web request.
    * @return {object} - The parsed path using the match pattern and the substitution.
    */
-  parseCustomPath(path: string): { path: string } {
+  parseCustomPath(path: string | undefined): { path: string } {
     // Setup from the environment variables
     const matchPattern = process.env.REWRITE_MATCH_PATTERN;
     const substitution = process.env.REWRITE_SUBSTITUTION;
@@ -107,7 +107,7 @@ export class ThumborMapping {
     if (path !== undefined && matchPattern !== undefined && substitution !== undefined) {
       let parsedPath = '';
 
-      if (typeof (matchPattern) === 'string') {
+      if (matchPattern) {
         const patternStrings = matchPattern.split('/');
         const flags: any = patternStrings.pop();
         const parsedPatternString = matchPattern.slice(1, matchPattern.length - 1 - flags.length);

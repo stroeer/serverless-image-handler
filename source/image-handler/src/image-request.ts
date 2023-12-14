@@ -6,6 +6,7 @@ import {Logger} from '@aws-lambda-powertools/logger'
 import {LogStashFormatter} from "./lib/logging/LogStashFormatter";
 import {ThumborMapping} from "./thumbor-mapping";
 import {GetObjectCommandOutput, S3} from "@aws-sdk/client-s3";
+import {APIGatewayProxyEventV2} from "aws-lambda";
 
 const logger = new Logger({
   serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME ?? '',
@@ -22,7 +23,6 @@ export class ImageRequest {
   cropping: any;
   originalImage: any;
   headers: any;
-  isAlb: any;
   ContentType: any;
   outputFormat: any;
   Expires: any;
@@ -40,7 +40,7 @@ export class ImageRequest {
    * handler to perform image modifications.
    * @param {object} event - Lambda request body.
    */
-  async setup(event: any): Promise<any> {
+  async setup(event: APIGatewayProxyEventV2): Promise<any> {
 
 
     this.requestType = this.parseRequestType(event);
@@ -50,7 +50,6 @@ export class ImageRequest {
     this.cropping = this.parseCropping(event, this.requestType);
     this.originalImage = await this.getOriginalImage(this.bucket, this.key);
     this.headers = this.parseImageHeaders(event, this.requestType);
-    this.isAlb = event.requestContext && event.requestContext.hasOwnProperty("elb");
 
     if (!this.headers) {
       delete this.headers;
@@ -142,10 +141,10 @@ export class ImageRequest {
         this.LastModified = new Date(originalImage.LastModified);
       }
 
-      if (originalImage.CacheControl && 'max-age=31536000,public' !== originalImage.CacheControl) {
+      if (originalImage.CacheControl && !originalImage.CacheControl.includes("31536000")) {
         this.CacheControl = originalImage.CacheControl;
       } else {
-        this.CacheControl = "public, max-age=31536000, immutable";
+        this.CacheControl = "max-age=31536000, immutable";
       }
 
       if (originalImage.ETag) {
@@ -168,7 +167,7 @@ export class ImageRequest {
    * @param {string} event - Lambda request body.
    * @param {string} requestType - Image handler request type.
    */
-  parseImageBucket(event: any, requestType: string) {
+  parseImageBucket(event: APIGatewayProxyEventV2, requestType: string) {
     if (requestType === "Default") {
       // Decode the image request
       const decoded = this.decodeRequest(event);
@@ -212,7 +211,7 @@ export class ImageRequest {
    * @param {string} event - Lambda request body.
    * @param {string} requestType - Image handler request type.
    */
-  parseImageEdits(event: any, requestType: string) {
+  parseImageEdits(event: APIGatewayProxyEventV2, requestType: string) {
     if (requestType === "Default") {
       const decoded = this.decodeRequest(event);
       return decoded.edits;
@@ -222,7 +221,7 @@ export class ImageRequest {
       return thumborMapping.edits;
     } else if (requestType === "Custom") {
       const thumborMapping = new ThumborMapping();
-      const parsedPath = thumborMapping.parseCustomPath(event.path);
+      const parsedPath = thumborMapping.parseCustomPath(event.rawPath);
       thumborMapping.process(parsedPath);
       return thumborMapping.edits;
     } else {
@@ -235,7 +234,7 @@ export class ImageRequest {
     }
   }
 
-  parseCropping(event: any, requestType: string) {
+  parseCropping(event: APIGatewayProxyEventV2, requestType: string) {
     if (requestType === "Default") {
       const decoded = this.decodeRequest(event);
       return decoded.cropping;
@@ -245,7 +244,7 @@ export class ImageRequest {
       return thumborMapping.cropping;
     } else if (requestType === "Custom") {
       const thumborMapping = new ThumborMapping();
-      const parsedPath = thumborMapping.parseCustomPath(event.path);
+      const parsedPath = thumborMapping.parseCustomPath(event.rawPath);
       thumborMapping.process(parsedPath);
       return thumborMapping.cropping;
     } else {
@@ -264,7 +263,7 @@ export class ImageRequest {
    * @param {String} event - Lambda request body.
    * @param {String} requestType - Type, either "Default", "Thumbor", or "Custom".
    */
-  parseImageKey(event: any, requestType: string) {
+  parseImageKey(event: APIGatewayProxyEventV2, requestType: string) {
     if (requestType === "Default") {
       // Decode the image request and return the image key
       const decoded = this.decodeRequest(event);
@@ -272,20 +271,20 @@ export class ImageRequest {
     }
 
     if (requestType === "Thumbor" || requestType === "Custom") {
-      let path = event['path'] || event['rawPath'];
+      let path = event.rawPath;
 
       if (requestType === "Custom") {
         const matchPattern = process.env.REWRITE_MATCH_PATTERN;
         const substitution = process.env.REWRITE_SUBSTITUTION;
 
-        if (typeof matchPattern === "string") {
+        if (matchPattern) {
           const patternStrings = matchPattern.split("/");
           const flags = patternStrings.pop();
           const parsedPatternString = matchPattern.slice(1, matchPattern.length - 1 - flags!.length);
           const regExp = new RegExp(parsedPatternString, flags);
-          path = path.replace(regExp, substitution);
+          path = path.replace(regExp, substitution ?? "");
         } else {
-          path = path.replace(matchPattern, substitution);
+          path = path.replace(matchPattern || "", substitution || "");
         }
       }
       path = path
@@ -322,8 +321,8 @@ export class ImageRequest {
    * (uses the rewrite function).
    * @param {object} event - Lambda request body.
    */
-  parseRequestType(event: any) {
-    const path = event["path"] || event['rawPath'];
+  parseRequestType(event: APIGatewayProxyEventV2) {
+    const path = event.rawPath;
     const matchDefault = new RegExp(/^(\/?)([0-9a-zA-Z+\/]{4})*(([0-9a-zA-Z+\/]{2}==)|([0-9a-zA-Z+\/]{3}=))?$/);
     const matchThumbor = new RegExp(/^(\/?)((fit-in)?|(filters:.+\(.?\))?|(unsafe)?).*(\.+jpg|\.+png|\.+webp|\.tiff|\.jpeg|\.svg|\.gif|\.avif)$/i);
     const matchCustom = new RegExp(/(\/?)(.*)(jpg|png|webp|tiff|jpeg|svg|gif|avif)/i);
@@ -366,7 +365,7 @@ export class ImageRequest {
    * @param {string} requestType - Image handler request type.
    * @return {object} Custom headers
    */
-  parseImageHeaders(event: any, requestType: string) {
+  parseImageHeaders(event: APIGatewayProxyEventV2, requestType: string) {
     if (requestType === "Default") {
       const decoded = this.decodeRequest(event);
       if (decoded.headers) {
@@ -383,9 +382,9 @@ export class ImageRequest {
    * image requests. Provides error handling for invalid or undefined path values.
    * @param {object} event - The proxied request object.
    */
-  decodeRequest(event: any) {
-    const path = event["path"];
-    if (path !== undefined) {
+  decodeRequest(event: APIGatewayProxyEventV2) {
+    const path = event.rawPath;
+    if (path !== undefined && path !== "") {
       const encoded = path.charAt(0) === "/" ? path.slice(1) : path;
       const toBuffer = Buffer.from(encoded, "base64");
       try {
@@ -434,10 +433,10 @@ export class ImageRequest {
    * @param {Object} event - The request body.
    * @param requestType
    */
-  getOutputFormat(event: any) {
+  getOutputFormat(event: APIGatewayProxyEventV2) {
     const autoWebP = process.env.AUTO_WEBP;
     const autoAvif = process.env.AUTO_AVIF;
-    let accept = event.headers ? event.headers.Accept || event.headers.accept : [];
+    let accept = (event.headers?.Accept || event.headers?.accept) ?? "";
     if (autoAvif === "Yes" && accept && accept.includes("image/avif")) {
       return "avif";
     } else if (autoWebP === "Yes" && accept && accept.includes("image/webp")) {
