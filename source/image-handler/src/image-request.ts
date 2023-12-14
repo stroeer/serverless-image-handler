@@ -40,7 +40,7 @@ export class ImageRequest {
    * handler to perform image modifications.
    * @param {object} event - Lambda request body.
    */
-  async setup(event: APIGatewayProxyEventV2): Promise<any> {
+  async setup(event: APIGatewayProxyEventV2): Promise<ImageRequest> {
 
 
     this.requestType = this.parseRequestType(event);

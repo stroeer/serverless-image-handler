@@ -7,6 +7,7 @@ import { Rekognition} from "@aws-sdk/client-rekognition";
 import sharp from 'sharp';
 
 import {LogStashFormatter} from "./lib/logging/LogStashFormatter";
+import {ImageRequest} from "./image-request";
 
 const logger = new Logger({
   serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME ?? 'image-handler',
@@ -26,7 +27,7 @@ export class ImageHandler {
    * @param request An image request.
    * @returns Processed and modified image encoded as base64 string.
    */
-  async process(request: any) {
+  async process(request: ImageRequest) {
     let returnImage;
     const originalImage = request.originalImage;
     const edits = request.edits;
@@ -35,7 +36,7 @@ export class ImageHandler {
     const hasEdits = edits !== undefined && Object.keys(edits).length > 0;
     const hasCropping = cropping !== undefined && Object.keys(cropping).length > 0;
     if (hasEdits || hasCropping) {
-      let image;
+      let image: sharp.Sharp;
       const keys = Object.keys(edits);
 
       if (keys.includes("rotate") && edits.rotate === null) {
@@ -81,13 +82,7 @@ export class ImageHandler {
       if ('image/webp' === request['ContentType'] && request.outputFormat === "webp") {
         image.webp({effort: 6, alphaQuality: 75});
       } else if ("image/png" === request['ContentType']) {
-        // <html
-        //     for_each in xls
-        //       timing (per image)
-        //       sizes (per image)
-        //       <img>
-        //   >
-        image.png({quality: 90, effort: 7, compressionLevel: 7});
+        image.png({quality: 80, effort: 9, compressionLevel: 9});
       } else if ("image/jpeg" === request['ContentType']) {
         image.jpeg({mozjpeg: true});
       } else if (request.outputFormat !== undefined) {
@@ -110,10 +105,6 @@ export class ImageHandler {
 
     // If the converted image is larger than Lambda's payload hard limit, throw an error.
     let lambdaPayloadLimit = 6 * 1024 * 1024;
-    if (request.isAlb) {
-      // lambda attached to ALB have a one MB hard limit
-      lambdaPayloadLimit = 1024 * 1024;
-    }
     if (returnImage.length > lambdaPayloadLimit) {
       throw {
         status: 413,
@@ -131,7 +122,7 @@ export class ImageHandler {
    * @param {Sharp} image - The original sharp image.
    * @param {object} edits - The edits to be made to the original image.
    */
-  async applyEdits(image: any, edits: any) {
+  async applyEdits(image: sharp.Sharp, edits: any) {
     if (edits.resize === undefined) {
       edits.resize = {};
       edits.resize.fit = "inside";
@@ -161,7 +152,7 @@ export class ImageHandler {
           alpha,
           imageMetadata
         );
-        const overlayMetadata: any = await sharp(overlay).metadata();
+        const overlayMetadata= await sharp(overlay).metadata();
 
         let {options} = value;
         if (options) {

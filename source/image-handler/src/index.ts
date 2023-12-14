@@ -29,7 +29,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     const isAlb = event.requestContext && event.requestContext.hasOwnProperty("elb");
 
     try {
-        const request = await imageRequest.setup(event);
+        const request: ImageRequest = await imageRequest.setup(event);
         logger.info("Image manipulation request", {...request, originalImage: undefined});
 
         let now = Date.now();
