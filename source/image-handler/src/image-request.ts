@@ -7,6 +7,7 @@ import {LogStashFormatter} from "./lib/logging/LogStashFormatter";
 import {ThumborMapping} from "./thumbor-mapping";
 import {GetObjectCommandOutput, S3} from "@aws-sdk/client-s3";
 import {APIGatewayProxyEventV2} from "aws-lambda";
+import sharp from "sharp";
 
 const logger = new Logger({
   serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME ?? '',
@@ -22,7 +23,6 @@ export class ImageRequest {
   edits: any;
   cropping: any;
   originalImage: any;
-  headers: any;
   ContentType: any;
   outputFormat: any;
   Expires: any;
@@ -49,11 +49,6 @@ export class ImageRequest {
     this.edits = this.parseImageEdits(event, this.requestType);
     this.cropping = this.parseCropping(event, this.requestType);
     this.originalImage = await this.getOriginalImage(this.bucket, this.key);
-    this.headers = this.parseImageHeaders(event, this.requestType);
-
-    if (!this.headers) {
-      delete this.headers;
-    }
 
     // If the original image is SVG file and it has any edits but no output format, change the format to WebP.
     if (this.ContentType === "image/svg+xml" &&
@@ -117,7 +112,7 @@ export class ImageRequest {
       const metaData = originalImage['Metadata'];
       const isGone = metaData && metaData['buzz-status-code'] && metaData['buzz-status-code'] === '410'
 
-      const imageBuffer =  Buffer.from(await originalImage.Body?.transformToByteArray()!);
+      const imageBuffer = Buffer.from(await originalImage.Body?.transformToByteArray()!);
 
       if (originalImage.ContentType) {
         // If using default s3 ContentType infer from hex headers
@@ -168,31 +163,7 @@ export class ImageRequest {
    * @param {string} requestType - Image handler request type.
    */
   parseImageBucket(event: APIGatewayProxyEventV2, requestType: string) {
-    if (requestType === "Default") {
-      // Decode the image request
-      const decoded = this.decodeRequest(event);
-      if (decoded.bucket !== undefined) {
-        // Check the provided bucket against the allowed list
-        const sourceBuckets = this.getAllowedSourceBuckets();
-        if (
-          sourceBuckets.includes(decoded.bucket) ||
-          decoded.bucket.match(new RegExp("^" + sourceBuckets[0] + "$"))
-        ) {
-          return decoded.bucket;
-        } else {
-          throw {
-            status: 403,
-            code: "ImageBucket::CannotAccessBucket",
-            message:
-              "The bucket you specified could not be accessed. Please check that the bucket is specified in your SOURCE_BUCKETS."
-          };
-        }
-      } else {
-        // Try to use the default image source bucket env var
-        const sourceBuckets = this.getAllowedSourceBuckets();
-        return sourceBuckets[0];
-      }
-    } else if (requestType === "Thumbor" || requestType === "Custom") {
+    if (requestType === "Thumbor" || requestType === "Custom") {
       // Use the default image source bucket env var
       const sourceBuckets = this.getAllowedSourceBuckets();
       return sourceBuckets[0];
@@ -212,17 +183,9 @@ export class ImageRequest {
    * @param {string} requestType - Image handler request type.
    */
   parseImageEdits(event: APIGatewayProxyEventV2, requestType: string) {
-    if (requestType === "Default") {
-      const decoded = this.decodeRequest(event);
-      return decoded.edits;
-    } else if (requestType === "Thumbor") {
+    if (requestType === "Thumbor") {
       const thumborMapping = new ThumborMapping();
       thumborMapping.process(event);
-      return thumborMapping.edits;
-    } else if (requestType === "Custom") {
-      const thumborMapping = new ThumborMapping();
-      const parsedPath = thumborMapping.parseCustomPath(event.rawPath);
-      thumborMapping.process(parsedPath);
       return thumborMapping.edits;
     } else {
       throw {
@@ -235,17 +198,9 @@ export class ImageRequest {
   }
 
   parseCropping(event: APIGatewayProxyEventV2, requestType: string) {
-    if (requestType === "Default") {
-      const decoded = this.decodeRequest(event);
-      return decoded.cropping;
-    } else if (requestType === "Thumbor") {
+    if (requestType === "Thumbor") {
       const thumborMapping = new ThumborMapping();
       thumborMapping.process(event);
-      return thumborMapping.cropping;
-    } else if (requestType === "Custom") {
-      const thumborMapping = new ThumborMapping();
-      const parsedPath = thumborMapping.parseCustomPath(event.rawPath);
-      thumborMapping.process(parsedPath);
       return thumborMapping.cropping;
     } else {
       throw {
@@ -264,12 +219,6 @@ export class ImageRequest {
    * @param {String} requestType - Type, either "Default", "Thumbor", or "Custom".
    */
   parseImageKey(event: APIGatewayProxyEventV2, requestType: string) {
-    if (requestType === "Default") {
-      // Decode the image request and return the image key
-      const decoded = this.decodeRequest(event);
-      return decoded.key;
-    }
-
     if (requestType === "Thumbor" || requestType === "Custom") {
       let path = event.rawPath;
 
@@ -323,30 +272,9 @@ export class ImageRequest {
    */
   parseRequestType(event: APIGatewayProxyEventV2) {
     const path = event.rawPath;
-    const matchDefault = new RegExp(/^(\/?)([0-9a-zA-Z+\/]{4})*(([0-9a-zA-Z+\/]{2}==)|([0-9a-zA-Z+\/]{3}=))?$/);
     const matchThumbor = new RegExp(/^(\/?)((fit-in)?|(filters:.+\(.?\))?|(unsafe)?).*(\.+jpg|\.+png|\.+webp|\.tiff|\.jpeg|\.svg|\.gif|\.avif)$/i);
-    const matchCustom = new RegExp(/(\/?)(.*)(jpg|png|webp|tiff|jpeg|svg|gif|avif)/i);
 
-    const definedEnvironmentVariables =
-      process.env.REWRITE_MATCH_PATTERN !== "" &&
-      process.env.REWRITE_SUBSTITUTION !== "" &&
-      process.env.REWRITE_MATCH_PATTERN !== undefined &&
-      process.env.REWRITE_SUBSTITUTION !== undefined;
-
-    //Check if path is base 64 encoded
-    let isBase64Encoded = true;
-    try {
-      this.decodeRequest(event);
-    } catch (error) {
-      isBase64Encoded = false;
-    }
-
-    if (matchDefault.test(path) && isBase64Encoded) {  // use sharp
-      return "Default";
-    } else if (matchCustom.test(path) && definedEnvironmentVariables) {
-      // use rewrite function then thumbor mappings
-      return "Custom";
-    } else if (matchThumbor.test(path) || path.endsWith("/")) {
+    if (matchThumbor.test(path) || path.endsWith("/")) {
       // use thumbor mappings
       return "Thumbor";
     } else {
@@ -355,55 +283,6 @@ export class ImageRequest {
         code: "RequestTypeError",
         message:
           "The type of request you are making could not be processed. Please ensure that your original image is of a supported file type (jpg, png, tiff, webp, svg, gif, avif) and that your image request is provided in the correct syntax. Refer to the documentation for additional guidance on forming image requests."
-      };
-    }
-  }
-
-  /**
-   * Parses the headers to be sent with the response.
-   * @param {object} event - Lambda request body.
-   * @param {string} requestType - Image handler request type.
-   * @return {object} Custom headers
-   */
-  parseImageHeaders(event: APIGatewayProxyEventV2, requestType: string) {
-    if (requestType === "Default") {
-      const decoded = this.decodeRequest(event);
-      if (decoded.headers) {
-        delete decoded.headers['Cache-Control'];
-        return decoded.headers;
-      }
-    }
-
-    return undefined;
-  }
-
-  /**
-   * Decodes the base64-encoded image request path associated with default
-   * image requests. Provides error handling for invalid or undefined path values.
-   * @param {object} event - The proxied request object.
-   */
-  decodeRequest(event: APIGatewayProxyEventV2) {
-    const path = event.rawPath;
-    if (path !== undefined && path !== "") {
-      const encoded = path.charAt(0) === "/" ? path.slice(1) : path;
-      const toBuffer = Buffer.from(encoded, "base64");
-      try {
-        // To support European characters, 'ascii' was removed.
-        return JSON.parse(toBuffer.toString());
-      } catch (e) {
-        throw {
-          status: 400,
-          code: "DecodeRequest::CannotDecodeRequest",
-          message:
-            "The image request you provided could not be decoded. Please check that your request is base64 encoded properly and refer to the documentation for additional guidance."
-        };
-      }
-    } else {
-      throw {
-        status: 400,
-        code: "DecodeRequest::CannotReadPath",
-        message:
-          "The URL path you provided could not be read. Please ensure that it is properly formed according to the solution documentation."
       };
     }
   }
@@ -433,7 +312,7 @@ export class ImageRequest {
    * @param {Object} event - The request body.
    * @param requestType
    */
-  getOutputFormat(event: APIGatewayProxyEventV2) {
+  getOutputFormat(event: APIGatewayProxyEventV2): keyof sharp.FormatEnum | null {
     const autoWebP = process.env.AUTO_WEBP;
     const autoAvif = process.env.AUTO_AVIF;
     let accept = (event.headers?.Accept || event.headers?.accept) ?? "";
@@ -441,11 +320,7 @@ export class ImageRequest {
       return "avif";
     } else if (autoWebP === "Yes" && accept && accept.includes("image/webp")) {
       return "webp";
-    } else if (this.requestType === "Default") {
-      const decoded = this.decodeRequest(event);
-      return decoded.outputFormat;
     }
-
     return null;
   }
 

@@ -8,7 +8,6 @@ import {mockClient} from "aws-sdk-client-mock";
 import {GetObjectCommand, S3Client} from "@aws-sdk/client-s3";
 import {Readable} from "stream";
 import {sdkStreamMixin} from "@aws-sdk/util-stream-node";
-import {DetectFacesCommand, RekognitionClient} from "@aws-sdk/client-rekognition";
 import {APIGatewayEventRequestContextV2, APIGatewayProxyEventV2} from "aws-lambda";
 
 const {expect} = require("expect");
@@ -16,7 +15,6 @@ const {expect} = require("expect");
 require("aws-sdk-client-mock-jest");
 
 const s3_mock = mockClient(S3Client);
-const rekognition_mock = mockClient(RekognitionClient);
 let event: APIGatewayProxyEventV2;
 
 function generateStream(data: Buffer) {
@@ -46,7 +44,7 @@ beforeEach(() => {
 describe('index', function () {
   // Arrange
   process.env.SOURCE_BUCKETS = 'source-bucket';
-  const mockImage = Buffer.from('SampleImageContent\n');
+  const mockImage = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
   const mockFallbackImage = Buffer.from('SampleFallbackImageContent\n');
 
   describe('TC: Success', function () {
@@ -55,11 +53,9 @@ describe('index', function () {
       // Mock
       s3_mock.on(GetObjectCommand).resolves({
               Body: generateStream(mockImage),
-              ContentType: 'image/jpeg'
+              ContentType: 'image/png'
             });
       });
-
-    rekognition_mock.on(DetectFacesCommand).resolves({})
 
     it('001/should return the image when there is no error', async function () {
       // Arrange
@@ -73,36 +69,11 @@ describe('index', function () {
           'Access-Control-Allow-Methods': 'GET',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Access-Control-Allow-Credentials': true,
-          'Content-Type': 'image/jpeg',
-          'Expires': undefined,
+          'Content-Type': 'image/png',
+          'ETag': undefined,
           'Cache-Control': 'max-age=31536000, immutable',
-          'Last-Modified': undefined
         },
-        body: mockImage.toString('base64')
-      };
-      // Assert
-      expect(s3_mock).toHaveReceivedCommandWith(GetObjectCommand, {Bucket: 'source-bucket', Key: 'test.jpg'});
-      expect(result).toEqual(expectedResult);
-    });
-    it('002/should return the image with custom headers when custom headers are provided', async function () {
-      // Arrange
-      event.rawPath = '/eyJidWNrZXQiOiJzb3VyY2UtYnVja2V0Iiwia2V5IjoidGVzdC5qcGciLCJoZWFkZXJzIjp7IkN1c3RvbS1IZWFkZXIiOiJDdXN0b21WYWx1ZSJ9fQ==';
-      // Act
-      const result = await handler(event);
-      const expectedResult = {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Methods': 'GET',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Allow-Credentials': true,
-          'Content-Type': 'image/jpeg',
-          'Expires': undefined,
-          'Cache-Control': 'max-age=31536000, immutable',
-          'Last-Modified': undefined,
-          'Custom-Header': 'CustomValue'
-        },
-        body: mockImage.toString('base64'),
-        isBase64Encoded: true
+        body: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAMAAAAoyzS7AAABP2lDQ1BpY2MAAHicfZC/SwJxGMY/11WWWA05NBQcJU0FUUtTgYZOEfgj1Kbz/FGgdt33QprLoaloiEZrCaLZxhz6A4KgIQqirdWghpKLrw5aUM/yfnh4Xt6XB5TnvFEQ3RoUirYVDvm1eCKpuV5Q8dLPIGO6IczlSDAKIPSSMGwrzw+936PIeTe9rhfTO6/Xq8kFpbo7UY4FP1Yu+F/udEYYwBfgM0zLBkUDxku2KXkJ8BrrehqUODBlxRNJUPakn2vxieRUiy8lW9FwAJQaoOU6ONXBhfy2vCslv/dkirEI0AeMIggTwv9HpreZCRBgBmRfv3sQ2bnZ1pZnEXqeHOdtElyH0DhynM9Tx2mcgfoIta32/mYF5uugHrS91DFc7cPIQ9vzVWCoDNUbU7f0pqUCXdkNqJ/DQAKGb8G99g3j4l+xfPB+eQAAAANQTFRF/wAAGeIJNwAAAAF0Uk5Tf4BctMsAAAAJcEhZcwAACxMAAAsTAQCanBgAAAC0ZVhJZklJKgAIAAAABgASAQMAAQAAAAEAAAAaAQUAAQAAAFYAAAAbAQUAAQAAAF4AAAAoAQMAAQAAAAIAAAATAgMAAQAAAAEAAABphwQAAQAAAGYAAAAAAAAASAAAAAEAAABIAAAAAQAAAAYAAJAHAAQAAAAwMjEwAZEHAAQAAAABAgMAAKAHAAQAAAAwMTAwAaADAAEAAAD//wAAAqAEAAEAAAABAAAAA6AEAAEAAAABAAAAAAAAANu53doAAAAKSURBVHicY2AAAAACAAFIr6RxAAAAAElFTkSuQmCC"
       };
       // Assert
       expect(s3_mock).toHaveReceivedCommandWith(GetObjectCommand, {Bucket: 'source-bucket', Key: 'test.jpg'});
@@ -140,36 +111,6 @@ describe('index', function () {
           status: 404,
           code: 'NoSuchKey',
           message: 'NoSuchKey error happened.'
-        })
-      };
-      // Assert
-      expect(s3_mock).toHaveReceivedCommandWith(GetObjectCommand, {Bucket: 'source-bucket', Key: 'test.jpg'});
-      expect(result).toEqual(expectedResult);
-    });
-    it('002/should return 500 error when there is no error status in the error', async function () {
-      // Arrange
-      event.rawPath = 'eyJidWNrZXQiOiJzb3VyY2UtYnVja2V0Iiwia2V5IjoidGVzdC5qcGciLCJlZGl0cyI6eyJ3cm9uZ0ZpbHRlciI6dHJ1ZX19';
-      // Mock
-      s3_mock.on(GetObjectCommand).resolves({
-        Body: generateStream(mockImage),
-        ContentType: 'image/jpeg'
-      })
-      // Act
-      const result = await handler(event);
-      const expectedResult = {
-        statusCode: 500,
-        isBase64Encoded: false,
-        headers: {
-          'Access-Control-Allow-Methods': 'GET',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Allow-Credentials': true,
-          "Cache-Control": "max-age=0, must-revalidate",
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: 'Internal error. Please contact the system administrator.',
-          code: 'InternalError',
-          status: 500
         })
       };
       // Assert
@@ -385,7 +326,7 @@ describe('index', function () {
         Expires: new Date(date_now_fixture + 30999).toUTCString(),
         ETag: '"foo"'
       },
-      body: mockImage.toString('base64')
+      body: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAMAAAAoyzS7AAABP2lDQ1BpY2MAAHicfZC/SwJxGMY/11WWWA05NBQcJU0FUUtTgYZOEfgj1Kbz/FGgdt33QprLoaloiEZrCaLZxhz6A4KgIQqirdWghpKLrw5aUM/yfnh4Xt6XB5TnvFEQ3RoUirYVDvm1eCKpuV5Q8dLPIGO6IczlSDAKIPSSMGwrzw+936PIeTe9rhfTO6/Xq8kFpbo7UY4FP1Yu+F/udEYYwBfgM0zLBkUDxku2KXkJ8BrrehqUODBlxRNJUPakn2vxieRUiy8lW9FwAJQaoOU6ONXBhfy2vCslv/dkirEI0AeMIggTwv9HpreZCRBgBmRfv3sQ2bnZ1pZnEXqeHOdtElyH0DhynM9Tx2mcgfoIta32/mYF5uugHrS91DFc7cPIQ9vzVWCoDNUbU7f0pqUCXdkNqJ/DQAKGb8G99g3j4l+xfPB+eQAAAANQTFRF/wAAGeIJNwAAAAF0Uk5Tf4BctMsAAAAJcEhZcwAACxMAAAsTAQCanBgAAAC0ZVhJZklJKgAIAAAABgASAQMAAQAAAAEAAAAaAQUAAQAAAFYAAAAbAQUAAQAAAF4AAAAoAQMAAQAAAAIAAAATAgMAAQAAAAEAAABphwQAAQAAAGYAAAAAAAAASAAAAAEAAABIAAAAAQAAAAYAAJAHAAQAAAAwMjEwAZEHAAQAAAABAgMAAKAHAAQAAAAwMTAwAaADAAEAAAD//wAAAqAEAAEAAAABAAAAA6AEAAEAAAABAAAAAAAAANu53doAAAAKSURBVHicY2AAAAACAAFIr6RxAAAAAElFTkSuQmCC"
     };
     // Assert
     expect(s3_mock).toHaveReceivedNthCommandWith(1, GetObjectCommand, {Bucket: 'source-bucket', Key: 'test.jpg'});
