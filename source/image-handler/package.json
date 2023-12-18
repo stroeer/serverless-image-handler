@@ -5,7 +5,7 @@
   "version": "5.1.0",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-s3": "3.433.0",
+    "@aws-sdk/client-s3": "3.474.0",
     "sharp": "0.33.0"
   },
   "devDependencies": {
