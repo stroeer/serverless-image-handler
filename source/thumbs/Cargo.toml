@@ -16,7 +16,7 @@ edition = "2021"
 
 [dependencies]
 image = { version = "0.24.7", features = ["jpeg", "png", "webp-encoder"] }
-lambda_http = "0.8.1"
+lambda_http = "0.9.0"
 lambda_runtime = "0.8.1"
 thumbhash = "0.1.0"
 reqwest = "0.11"
