@@ -22,15 +22,18 @@ endif
 
 all :: build tf
 
-clean ::
+.PHONY: clean
+clean: check-func
 	@echo "+ $@"
 	@cd $(WORK_DIR) && rm -rf ./dist/ ./node_modules/
 
-npm/install ::
+.PHONY: npm/install
+npm/install: check-func
 	@echo "+ $@"
 	cd $(WORK_DIR) && npm install --cpu=arm64 --os=linux --libc=musl
 
-npm/test ::
+.PHONY: npm/test
+npm/test: check-func
 	@echo "+ $@"
 	cd $(WORK_DIR) && npm run test
 

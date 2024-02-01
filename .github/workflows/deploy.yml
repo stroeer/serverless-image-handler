@@ -40,9 +40,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: install
-        run: make npm/install
+        run: make FUNC=image-handler npm/install
       - name: install
-        run: make npm/test
+        run: make FUNC=image-handler npm/test
       - name: build
         run: make FUNC=image-handler build
 
