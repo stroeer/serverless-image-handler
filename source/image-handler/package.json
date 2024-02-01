@@ -17,7 +17,7 @@
     "aws-sdk-client-mock": "3.0.0",
     "aws-sdk-client-mock-jest": "3.0.0",
     "@aws-sdk/util-stream-node": "3.374.0",
-    "prettier": "3.0.3",
+    "prettier": "3.2.4",
     "tsup": "7.2.0",
     "vitest": "^1.0.4"
   },
