@@ -28,12 +28,12 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -51,7 +51,7 @@ jobs:
         # 1. is a 'push to main'
         # 2. did not run in a fork
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'stroeer' }}
-        uses: aws-actions/configure-aws-credentials@master
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::053041861227:role/github-s3-access-eu-west-1
           role-session-name: GitHubActions
@@ -72,14 +72,14 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
       - name: Set up cargo cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         continue-on-error: false
         with:
           path: |
@@ -100,7 +100,7 @@ jobs:
         # 1. is a 'push to main'
         # 2. did not run in a fork
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'stroeer' }}
-        uses: aws-actions/configure-aws-credentials@master
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::053041861227:role/github-s3-access-eu-west-1
           role-session-name: GitHubActions
