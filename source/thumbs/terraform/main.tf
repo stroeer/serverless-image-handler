@@ -11,7 +11,7 @@ module "lambda" {
 
   architectures = ["arm64"]
   layers = [
-    "arn:aws:lambda:${var.region}:${var.account_id}:layer:CustomLoggingExtensionOpenSearch-Arm64:10"
+    "arn:aws:lambda:${var.region}:${var.account_id}:layer:CustomLoggingExtensionOpenSearch-Arm64:11"
   ]
   cloudwatch_logs_enabled          = false
   description                      = "provider of cute kitty thumbs."
