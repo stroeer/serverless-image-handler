@@ -22,7 +22,7 @@ describe('parseImageHeaders', () => {
 
     // Assert
     const expectedResult = {
-      'Cache-Control': 'max-age=31536000,public',
+      'Cache-Control': 'max-age=31536000',
     };
     expect(result).toEqual(expectedResult);
   });

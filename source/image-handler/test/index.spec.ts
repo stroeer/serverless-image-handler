@@ -36,7 +36,7 @@ describe('index', () => {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'image/jpeg',
         Expires: undefined,
-        'Cache-Control': 'max-age=31536000,public',
+        'Cache-Control': 'max-age=31536000',
         'Last-Modified': undefined,
       },
       body: btoa('SampleImageContent\n'),

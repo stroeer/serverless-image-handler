@@ -40,7 +40,7 @@ describe('setup', () => {
       key: 'test-image-001.jpg',
       edits: { grayscale: true },
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=31536000,public',
+      cacheControl: 'max-age=31536000',
       contentType: 'image',
     };
 
@@ -74,7 +74,7 @@ describe('setup', () => {
         png: { quality: 50 },
       },
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=31536000,public',
+      cacheControl: 'max-age=31536000',
       outputFormat: 'png',
       contentType: 'image/png',
     };
@@ -98,7 +98,7 @@ describe('setup', () => {
 
     // Mock
     mockS3Client.on(GetObjectCommand).resolves({
-      CacheControl: 'max-age=300,public',
+      CacheControl: 'max-age=300',
       ContentType: 'custom-type',
       Expires: new Date('Tue, 24 Dec 2019 13:46:28 GMT'),
       LastModified: new Date('Sat, 19 Dec 2009 16:30:47 GMT'),
@@ -117,7 +117,7 @@ describe('setup', () => {
         rotate: 90,
       },
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=300,public',
+      cacheControl: 'max-age=300',
       contentType: 'custom-type',
       expires: 'Tue, 24 Dec 2019 13:46:28 GMT',
       lastModified: 'Sat, 19 Dec 2009 16:30:47 GMT',
@@ -142,7 +142,7 @@ describe('setup', () => {
 
     // Mock
     mockS3Client.on(GetObjectCommand).resolves({
-      CacheControl: 'max-age=300,public',
+      CacheControl: 'max-age=300',
       ContentType: 'custom-type',
       Expires: new Date('Tue, 24 Dec 2019 13:46:28 GMT'),
       LastModified: new Date('Sat, 19 Dec 2009 16:30:47 GMT'),
@@ -161,7 +161,7 @@ describe('setup', () => {
         rotate: 90,
       },
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=300,public',
+      cacheControl: 'max-age=300',
       contentType: 'custom-type',
       expires: 'Tue, 24 Dec 2019 13:46:28 GMT',
       lastModified: 'Sat, 19 Dec 2009 16:30:47 GMT',
@@ -202,7 +202,7 @@ describe('setup', () => {
         key: 'image.svg',
         edits: {},
         originalImage: Buffer.from('SampleImageContent\n'),
-        cacheControl: 'max-age=31536000,public',
+        cacheControl: 'max-age=31536000',
         contentType: 'image/svg+xml',
       };
 
@@ -236,7 +236,7 @@ describe('setup', () => {
         edits: { resize: { width: 100, height: 100 } },
         outputFormat: 'png',
         originalImage: Buffer.from('SampleImageContent\n'),
-        cacheControl: 'max-age=31536000,public',
+        cacheControl: 'max-age=31536000',
         contentType: 'image/png',
       };
 
@@ -270,7 +270,7 @@ describe('setup', () => {
         edits: { toFormat: 'jpeg' },
         outputFormat: 'jpeg',
         originalImage: Buffer.from('SampleImageContent\n'),
-        cacheControl: 'max-age=31536000,public',
+        cacheControl: 'max-age=31536000',
         contentType: 'image/jpeg',
       };
 
@@ -301,10 +301,10 @@ describe('setup', () => {
       requestType: 'Default',
       bucket: 'validBucket',
       key: 'validKey',
-      headers: { 'Cache-Control': 'max-age=31536000,public' },
+      headers: { 'Cache-Control': 'max-age=31536000' },
       outputFormat: 'jpeg',
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=31536000,public',
+      cacheControl: 'max-age=31536000',
       contentType: 'image/jpeg',
     };
 
@@ -337,7 +337,7 @@ describe('setup', () => {
       headers: undefined,
       outputFormat: 'webp',
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=31536000,public',
+      cacheControl: 'max-age=31536000',
       contentType: 'image/webp',
     };
 
@@ -370,7 +370,7 @@ describe('setup', () => {
       headers: undefined,
       outputFormat: 'webp',
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=31536000,public',
+      cacheControl: 'max-age=31536000',
       contentType: 'image/webp',
     };
 
@@ -403,7 +403,7 @@ describe('setup', () => {
       headers: undefined,
       outputFormat: 'webp',
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=31536000,public',
+      cacheControl: 'max-age=31536000',
       contentType: 'image/webp',
     };
 
@@ -435,7 +435,7 @@ describe('setup', () => {
       headers: undefined,
       outputFormat: 'webp',
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=31536000,public',
+      cacheControl: 'max-age=31536000',
       contentType: 'image/webp',
     };
 
@@ -470,7 +470,7 @@ describe('setup', () => {
       headers: undefined,
       outputFormat: 'jpeg',
       originalImage: Buffer.from('SampleImageContent\n'),
-      cacheControl: 'max-age=31536000,public',
+      cacheControl: 'max-age=31536000',
       contentType: 'image/jpeg',
     };
     // Assert

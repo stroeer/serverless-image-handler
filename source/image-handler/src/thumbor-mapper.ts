@@ -373,6 +373,10 @@ export class ThumborMapper {
         currentEdits.animated = filterValue.toLowerCase() != 'false';
         break;
       }
+      case 'roundCrop': {
+        currentEdits.roundCrop = true;
+        break;
+      }
     }
 
     return currentEdits;
@@ -390,15 +394,15 @@ export class ThumborMapper {
       const [leftTopPoint, rightBottomPoint] = pathCropMatchResult[0].split(':');
 
       const [leftTopX, leftTopY] = leftTopPoint.split('x').map(x => parseInt(x, 10));
-      const [rightBottomX, rightBottomY] = rightBottomPoint.split('x').map(x => parseInt(x, 10));
+      const [width, height] = rightBottomPoint.split('x').map(x => parseInt(x, 10));
 
-      if (!isNaN(leftTopX) && !isNaN(leftTopY) && !isNaN(rightBottomX) && !isNaN(rightBottomY)) {
+      if (!isNaN(leftTopX) && !isNaN(leftTopY) && !isNaN(width) && !isNaN(height)) {
         const cropEdit: ImageEdits = {
           crop: {
             left: leftTopX,
             top: leftTopY,
-            width: rightBottomX - leftTopX,
-            height: rightBottomY - leftTopY,
+            width: width,
+            height: height,
           },
         };
 

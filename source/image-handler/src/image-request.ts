@@ -182,7 +182,7 @@ export class ImageRequest {
         result.lastModified = new Date(originalImage.LastModified).toUTCString();
       }
 
-      result.cacheControl = originalImage.CacheControl ?? 'max-age=31536000,public';
+      result.cacheControl = originalImage.CacheControl ?? 'max-age=31536000';
       result.originalImage = imageBuffer;
 
       return result;
@@ -248,7 +248,9 @@ export class ImageRequest {
           .replace(/filters:[^/]+/g, '')
           .replace(/\/fit-in(?=\/)/g, '')
           .replace(/^\/+/g, '')
-          .replace(/^\/+/, ''),
+          .replace(/^\/+/, '')
+          .replace(/\/+/g, '/')
+          .replace(/^authors\//, ''),
       );
     }
 

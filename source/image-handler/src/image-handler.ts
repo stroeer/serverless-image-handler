@@ -51,13 +51,18 @@ export class ImageHandler {
   private modifyImageOutput(modifiedImage: sharp.Sharp, imageRequestInfo: ImageRequestInfo): sharp.Sharp {
     const modifiedOutputImage = modifiedImage;
 
-    // modify if specified
     if (imageRequestInfo.outputFormat !== undefined) {
-      // Include reduction effort for webp images if included
       if (imageRequestInfo.outputFormat === ImageFormatTypes.WEBP && typeof imageRequestInfo.effort !== 'undefined') {
         modifiedOutputImage.webp({ effort: imageRequestInfo.effort });
-      } else {
-        modifiedOutputImage.toFormat(ImageHandler.convertImageFormatType(imageRequestInfo.outputFormat));
+      } else if (imageRequestInfo.outputFormat === ImageFormatTypes.WEBP) {
+        modifiedOutputImage.webp({ effort: 6 });
+      } else if (ImageFormatTypes.PNG === imageRequestInfo.outputFormat) {
+        modifiedOutputImage.png({ palette: true, quality: 100, effort: 7, compressionLevel: 6 });
+      } else if (
+        ImageFormatTypes.JPEG === imageRequestInfo.outputFormat ||
+        ImageFormatTypes.JPG === imageRequestInfo.outputFormat
+      ) {
+        modifiedOutputImage.jpeg({ mozjpeg: true });
       }
     }
 
@@ -251,7 +256,10 @@ export class ImageHandler {
       const overlayOptions: OverlayOptions[] = [{ input: ellipse, blend: 'dest-in' }];
 
       // Need to break out into another sharp pipeline to allow for resize after composite
-      const data = await originalImage.composite(overlayOptions).toBuffer();
+      const data = await originalImage
+        .composite(overlayOptions)
+        .png() // transparent background instead of black background
+        .toBuffer();
       return sharp(data).withMetadata().trim();
     }
 
