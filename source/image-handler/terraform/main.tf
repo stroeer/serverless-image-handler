@@ -125,7 +125,7 @@ resource "aws_lambda_layer_version" "sharp" {
   s3_key            = aws_s3_bucket_object.sharp.key
   s3_object_version = aws_s3_bucket_object.sharp.version_id
   skip_destroy      = true
-  source_code_hash  = aws_s3_bucket_object.sharp.etag
+  source_code_hash  = filebase64sha256("${path.module}/lambda-layer.zip")
 
   compatible_runtimes = ["nodejs16.x", "nodejs18.x", "nodejs20.x"]
   compatible_architectures = ["arm64"]

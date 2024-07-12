@@ -15,13 +15,7 @@ import {
 import { ThumborMapper } from './thumbor-mapper';
 import { GetObjectCommand, GetObjectCommandInput, GetObjectCommandOutput, S3 } from '@aws-sdk/client-s3';
 import { APIGatewayProxyEventV2 } from 'aws-lambda';
-import { Logger } from '@aws-lambda-powertools/logger';
-import { LogStashFormatter } from './lib/LogstashFormatter';
-
-const logger = new Logger({
-  serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME ?? '',
-  logFormatter: new LogStashFormatter(),
-});
+import { logger } from './index';
 
 type OriginalImageInfo = Partial<{
   contentType: string;

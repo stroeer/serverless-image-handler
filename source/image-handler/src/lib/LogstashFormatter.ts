@@ -5,6 +5,9 @@ type LogStashLog = LogAttributes & {
   '@timestamp': string;
 };
 
+const allowed_keys = ['rawPath', 'headers', 'http'];
+const allowed_headers = ['accept', 'x-amz-cf-id', 'user-agent', 'host', 'origin', 'x-amzn-trace-id'];
+
 class LogStashFormatter extends LogFormatter {
   public formatAttributes(attributes: UnformattedAttributes, additionalLogAttributes: LogAttributes): LogItem {
     const baseAttributes: LogStashLog = {
@@ -24,7 +27,26 @@ class LogStashFormatter extends LogFormatter {
       },
     };
     const logItem = new LogItem({ attributes: baseAttributes });
-    logItem.addAttributes(additionalLogAttributes); // add any attributes not explicitly defined
+    if (additionalLogAttributes) {
+      if (additionalLogAttributes.hasOwnProperty('imageRequestInfo')) {
+        let additionalLogAttribute = additionalLogAttributes['imageRequestInfo'];
+        additionalLogAttribute['originalImage'] = undefined;
+      }
+      if (additionalLogAttributes.hasOwnProperty('headers')) {
+        let headers = additionalLogAttributes['headers'];
+        additionalLogAttributes['headers'] = allowed_headers.reduce((acc, key) => {
+          acc[key] = headers[key];
+          return acc;
+        }, {});
+      }
+
+      additionalLogAttributes = allowed_keys.reduce((acc, key) => {
+        acc[key] = additionalLogAttributes[key];
+        return acc;
+      }, {});
+
+      logItem.addAttributes(additionalLogAttributes); // add any attributes not explicitly defined
+    }
 
     return logItem;
   }

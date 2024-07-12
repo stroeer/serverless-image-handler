@@ -11,7 +11,7 @@ import { LogStashFormatter } from './lib/LogstashFormatter';
 
 const s3Client = new S3();
 
-const logger = new Logger({
+export const logger = new Logger({
   serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME ?? '',
   logFormatter: new LogStashFormatter(),
 });
