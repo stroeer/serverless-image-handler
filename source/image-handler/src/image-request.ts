@@ -132,7 +132,9 @@ export class ImageRequest {
 
       return imageRequestInfo;
     } catch (error) {
-      logger.warn('Error occurred while setting up the image request. Error: ', error);
+      if (error.code && error.code !== 'NoSuchKey') {
+        logger.warn('Error occurred while setting up the image request. Error: ', error);
+      }
 
       throw error;
     }

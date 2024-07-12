@@ -50,14 +50,22 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<ImageHandl
 
     let headers = getResponseHeaders(false);
     headers['Content-Type'] = imageRequestInfo.contentType;
+
     if (imageRequestInfo.expires) {
       // eslint-disable-next-line dot-notation
       headers['Expires'] = new Date(imageRequestInfo.expires).toUTCString();
+      let seconds_until_expiry = Math.min(
+        31536000,
+        Math.floor((imageRequestInfo.expires.getTime() - Date.now()) / 1000),
+      );
+      headers['Cache-Control'] = 'max-age=' + seconds_until_expiry + ', immutable';
+    } else {
+      headers['Cache-Control'] = imageRequestInfo.cacheControl + ', immutable';
     }
     if (imageRequestInfo.lastModified) {
       headers['Last-Modified'] = new Date(imageRequestInfo.lastModified).toUTCString();
     }
-    headers['Cache-Control'] = imageRequestInfo.cacheControl;
+
     // Apply the custom headers overwriting any that may need overwriting
     if (imageRequestInfo.headers) {
       headers = { ...headers, ...imageRequestInfo.headers };
@@ -70,7 +78,9 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<ImageHandl
       body: processedRequest,
     };
   } catch (error) {
-    logger.warn('Error occurred during image processing', { error });
+    if (error.code && error.code !== 'NoSuchKey') {
+      logger.warn('Error occurred during image processing', { error });
+    }
     const { statusCode, body } = getErrorResponse(error);
     return {
       statusCode,

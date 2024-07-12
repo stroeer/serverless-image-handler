@@ -36,7 +36,7 @@ describe('index', () => {
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'image/jpeg',
-        'Cache-Control': 'max-age=31536000',
+        'Cache-Control': 'max-age=31536000, immutable',
         Expires: undefined,
         'Last-Modified': undefined,
       },
