@@ -5,7 +5,7 @@ type LogStashLog = LogAttributes & {
   '@timestamp': string;
 };
 
-const allowed_keys = ['rawPath', 'headers', 'http'];
+const allowed_keys = ['rawPath', 'headers', 'http', 'error'];
 const allowed_headers = ['accept', 'x-amz-cf-id', 'user-agent', 'host', 'origin', 'x-amzn-trace-id'];
 
 class LogStashFormatter extends LogFormatter {
