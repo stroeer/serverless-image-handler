@@ -8,7 +8,7 @@ VERSION 			= $(eval VERSION := $$(shell git rev-parse --short HEAD))$(VERSION)
 
 TF_BACKEND_CFG 		= $(eval TF_BACKEND_CFG := -backend-config=bucket=terraform-state-$(ACCOUNT_ID)-$(REGION) \
 							-backend-config=region=$(REGION) \
-							-backend-config=key="regional/lambda/image-handler/terraform$(APP_SUFFIX).tfstate")$(TF_BACKEND_CFG)
+							-backend-config=key=regional/lambda/image-handler/terraform$(addprefix -,$(APP_SUFFIX)).tfstate)$(TF_BACKEND_CFG)
 
 TF_VARS				= $(eval TF_VARS := -var="region=$(REGION)" -var="account_id=$(ACCOUNT_ID)" -var="app_suffix=$(APP_SUFFIX)")$(TF_VARS)
 TF_FOLDERS 			:= $(shell find . -not -path "*/\.*" -iname "*.tf" | sed -E "s|/[^/]+$$||" | sort --unique)
@@ -35,8 +35,7 @@ npm/test:
 .PHONY: build
 build: ## Builds the function
 	@echo "+ $@"
-	npm run test && npm run build ; \
-
+	cd $(WORK_DIR) && npm run test && npm run build
 
 tf: ## Runs `terraform`
 	rm -f $(WORK_DIR)/terraform/.terraform/terraform.tfstate || true
@@ -47,7 +46,7 @@ tf: ## Runs `terraform`
 .PHONY: deploy
 deploy: build ## Uploads the artefact` to start CodePipeline deployment
 	@echo "+ $@"
-	aws s3 cp $(WORK_DIR)/dist/image-handler.zip s3://ci-$(ACCOUNT_ID)-$(REGION)/image-handler/image-handler$(APP_SUFFIX).zip ; \
+	aws s3 cp $(WORK_DIR)/dist/image-handler.zip s3://ci-$(ACCOUNT_ID)-$(REGION)/image-handler/image-handler$(addprefix -,$(APP_SUFFIX)).zip ; \
 
 .PHONY: help
 help: ## Display this help screen
