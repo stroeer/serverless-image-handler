@@ -4,7 +4,7 @@
 import { S3 } from '@aws-sdk/client-s3';
 import { ImageRequest } from '../../src/image-request';
 import { StatusCodes } from '../../src/lib';
-import { build_event } from './helpers';
+import { build_event } from '../helpers';
 
 describe('decodeRequest', () => {
   const s3Client = new S3();

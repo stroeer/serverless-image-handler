@@ -3,11 +3,13 @@
 
 import { GetObjectCommand, S3, S3Client } from '@aws-sdk/client-s3';
 import { ImageRequest } from '../../src/image-request';
-import { RequestTypes } from '../../src/lib';
-import { sdkStreamFromString } from '../mock';
-import { build_event } from './helpers';
+import { ImageRequestInfo, RequestTypes } from '../../src/lib';
+import { sample_image, sdkStreamFromString } from '../mock';
+import { build_event } from '../helpers';
 import 'aws-sdk-client-mock-jest';
 import { mockClient } from 'aws-sdk-client-mock';
+import fs, { createReadStream } from 'fs';
+import { sdkStreamMixin } from '@smithy/util-stream';
 
 describe('setup', () => {
   const OLD_ENV = process.env;
@@ -108,7 +110,7 @@ describe('setup', () => {
     // Act
     const imageRequest = new ImageRequest(new S3({}));
     const imageRequestInfo = await imageRequest.setup(event);
-    const expectedResult = {
+    const expectedResult: ImageRequestInfo = {
       requestType: RequestTypes.THUMBOR,
       bucket: 'allowedBucket001',
       key: 'custom-image.jpg',
@@ -119,8 +121,8 @@ describe('setup', () => {
       originalImage: Buffer.from('SampleImageContent\n'),
       cacheControl: 'max-age=300',
       contentType: 'custom-type',
-      expires: 'Tue, 24 Dec 2019 13:46:28 GMT',
-      lastModified: 'Sat, 19 Dec 2009 16:30:47 GMT',
+      expires: new Date('Tue, 24 Dec 2019 13:46:28 GMT'),
+      lastModified: new Date('Sat, 19 Dec 2009 16:30:47 GMT'),
     };
 
     // Assert
@@ -163,8 +165,8 @@ describe('setup', () => {
       originalImage: Buffer.from('SampleImageContent\n'),
       cacheControl: 'max-age=300',
       contentType: 'custom-type',
-      expires: 'Tue, 24 Dec 2019 13:46:28 GMT',
-      lastModified: 'Sat, 19 Dec 2009 16:30:47 GMT',
+      expires: new Date('Tue, 24 Dec 2019 13:46:28 GMT'),
+      lastModified: new Date('Sat, 19 Dec 2009 16:30:47 GMT'),
     };
 
     // Assert
@@ -287,7 +289,7 @@ describe('setup', () => {
     // Arrange
     const event = build_event({
       rawPath:
-        '/eyJidWNrZXQiOiJ2YWxpZEJ1Y2tldCIsImtleSI6InZhbGlkS2V5IiwiaGVhZGVycyI6eyJDYWNoZS1Db250cm9sIjoibWF4LWFnZT0zMTUzNjAwMCxwdWJsaWMifSwib3V0cHV0Rm9ybWF0IjoianBlZyJ9',
+        '/eyJidWNrZXQiOiJ2YWxpZEJ1Y2tldCIsImtleSI6InZhbGlkS2V5IiwiaGVhZGVycyI6eyJDYWNoZS1Db250cm9sIjoibWF4LWFnZT0zMTUzNjAwMCJ9LCJvdXRwdXRGb3JtYXQiOiJqcGVnIn0=',
     });
     process.env.SOURCE_BUCKETS = 'validBucket, validBucket2';
 
@@ -324,7 +326,7 @@ describe('setup', () => {
     process.env.SOURCE_BUCKETS = 'test, validBucket, validBucket2';
 
     // Mock
-    mockS3Client.on(GetObjectCommand).resolves({ Body: sdkStreamFromString('SampleImageContent\n') });
+    mockS3Client.on(GetObjectCommand).resolves({ Body: sample_image });
 
     // Act
     const imageRequest = new ImageRequest(new S3({}));
@@ -336,7 +338,10 @@ describe('setup', () => {
       edits: undefined,
       headers: undefined,
       outputFormat: 'webp',
-      originalImage: Buffer.from('SampleImageContent\n'),
+      originalImage: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        'base64',
+      ),
       cacheControl: 'max-age=31536000',
       contentType: 'image/webp',
     };

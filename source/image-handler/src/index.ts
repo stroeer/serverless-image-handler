@@ -6,8 +6,15 @@ import { ImageRequest } from './image-request';
 import { Headers, ImageHandlerExecutionResult, StatusCodes } from './lib';
 import { S3 } from '@aws-sdk/client-s3';
 import { APIGatewayProxyEventV2 } from 'aws-lambda';
+import { Logger } from '@aws-lambda-powertools/logger';
+import { LogStashFormatter } from './lib/LogstashFormatter';
 
 const s3Client = new S3();
+
+const logger = new Logger({
+  serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME ?? '',
+  logFormatter: new LogStashFormatter(),
+});
 
 /**
  * Image handler Lambda handler.
@@ -15,24 +22,42 @@ const s3Client = new S3();
  * @returns Processed request response.
  */
 export async function handler(event: APIGatewayProxyEventV2): Promise<ImageHandlerExecutionResult> {
-  console.info('Received event:', JSON.stringify(event, null, 2));
+  logger.appendKeys({ ...event, originalImage: undefined });
+  logger.info('Image manipulation request', { headers: event.headers });
 
   const imageRequest = new ImageRequest(s3Client);
   const imageHandler = new ImageHandler(s3Client);
 
   try {
     const imageRequestInfo = await imageRequest.setup(event);
-    console.info(imageRequestInfo);
+    logger.info('image request', { imageRequestInfo });
+
+    if (imageRequestInfo.expires && imageRequestInfo.expires.getTime() < Date.now()) {
+      logger.warn('Expired content was requested: ' + imageRequestInfo.key);
+      return {
+        statusCode: StatusCodes.GONE,
+        isBase64Encoded: false,
+        headers: getResponseHeaders(true),
+        body: JSON.stringify({
+          message: 'HTTP/410. Content ' + imageRequestInfo.key + ' has expired.',
+          code: 'Gone',
+          status: 410,
+        }),
+      };
+    }
 
     const processedRequest = await imageHandler.process(imageRequestInfo);
 
     let headers = getResponseHeaders(false);
     headers['Content-Type'] = imageRequestInfo.contentType;
-    // eslint-disable-next-line dot-notation
-    headers['Expires'] = imageRequestInfo.expires;
-    headers['Last-Modified'] = imageRequestInfo.lastModified;
+    if (imageRequestInfo.expires) {
+      // eslint-disable-next-line dot-notation
+      headers['Expires'] = new Date(imageRequestInfo.expires).toUTCString();
+    }
+    if (imageRequestInfo.lastModified) {
+      headers['Last-Modified'] = new Date(imageRequestInfo.lastModified).toUTCString();
+    }
     headers['Cache-Control'] = imageRequestInfo.cacheControl;
-
     // Apply the custom headers overwriting any that may need overwriting
     if (imageRequestInfo.headers) {
       headers = { ...headers, ...imageRequestInfo.headers };
@@ -45,7 +70,7 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<ImageHandl
       body: processedRequest,
     };
   } catch (error) {
-    console.error(error);
+    logger.warn('Error occurred during image processing', { error });
     const { statusCode, body } = getErrorResponse(error);
     return {
       statusCode,

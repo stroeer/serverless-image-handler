@@ -5,7 +5,7 @@ import { S3 } from '@aws-sdk/client-s3';
 import { ImageRequest } from '../../src/image-request';
 import { RequestTypes, StatusCodes } from '../../src/lib';
 import { consoleInfoSpy } from '../mock';
-import { build_event } from './helpers';
+import { build_event } from '../helpers';
 
 describe('parseRequestType', () => {
   const s3Client = new S3();

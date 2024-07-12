@@ -96,15 +96,15 @@ describe('modifyImageOutput', () => {
       originalImage: image,
     };
     const imageHandler = new ImageHandler(s3Client);
-    const sharpImage = sharp(request.originalImage, { failOnError: false }).withMetadata();
-    const toFormatSpy = jest.spyOn(sharp.prototype, 'toFormat');
+    const sharpImage = sharp(request.originalImage, { failOn: 'none' }).withMetadata();
+    const toFormatSpy = jest.spyOn(sharp.prototype, 'jpeg');
     const result = await imageHandler['modifyImageOutput'](sharpImage, request).toBuffer();
 
     // Act
     const resultFormat = (await sharp(result).metadata()).format;
 
     // Assert
-    expect(toFormatSpy).toHaveBeenCalledWith('jpeg');
+    expect(toFormatSpy).toHaveBeenCalledWith({ mozjpeg: true });
     expect(resultFormat).toEqual(ImageFormatTypes.JPEG);
   });
 

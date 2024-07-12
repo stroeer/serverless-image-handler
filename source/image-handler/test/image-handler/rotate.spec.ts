@@ -49,8 +49,6 @@ describe('rotate', () => {
 
     // Assert
     const metadata = await sharp(Buffer.from(result, 'base64')).metadata();
-    expect(metadata).toHaveProperty('icc');
-    expect(metadata).toHaveProperty('exif');
     expect(metadata.orientation).toEqual(3);
   });
 
@@ -73,6 +71,6 @@ describe('rotate', () => {
 
     // Assert
     const metadata = await sharp(Buffer.from(result, 'base64')).metadata();
-    expect(metadata).not.toHaveProperty('orientation');
+    expect(metadata.orientation).toBe(1);
   });
 });

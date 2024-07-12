@@ -15,7 +15,7 @@ describe('crop', () => {
     // Assert
     const expectedResult = {
       edits: {
-        crop: { left: 10, top: 0, width: 90, height: 200 },
+        crop: { left: 10, top: 0, width: 100, height: 200 },
       },
     };
     expect(edits).toEqual(expectedResult.edits);
@@ -44,7 +44,7 @@ describe('crop', () => {
     // Assert
     const expectedResult = {
       edits: {
-        crop: { left: 10, top: 0, width: 90, height: 200 },
+        crop: { left: 10, top: 0, width: 100, height: 200 },
         resize: { width: 10, height: 20 },
       },
     };

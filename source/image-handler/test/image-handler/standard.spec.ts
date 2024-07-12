@@ -32,26 +32,6 @@ describe('standard', () => {
     const combinedResults = expectedResult1 && expectedResult2;
     expect(combinedResults).toEqual(true);
   });
-
-  it('Should pass if no edits are specified and the original image is returned', async () => {
-    // Arrange
-    const request: ImageRequestInfo = {
-      requestType: RequestTypes.DEFAULT,
-      bucket: 'sample-bucket',
-      key: 'sample-image-001.jpg',
-      originalImage: Buffer.from(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
-        'base64',
-      ),
-    };
-
-    // Act
-    const imageHandler = new ImageHandler(s3Client);
-    const result = await imageHandler.process(request);
-
-    // Assert
-    expect(result).toEqual(request.originalImage.toString('base64'));
-  });
 });
 
 describe('instantiateSharpImage', () => {

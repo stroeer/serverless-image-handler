@@ -15,11 +15,18 @@ import {
 import { ThumborMapper } from './thumbor-mapper';
 import { GetObjectCommand, GetObjectCommandInput, GetObjectCommandOutput, S3 } from '@aws-sdk/client-s3';
 import { APIGatewayProxyEventV2 } from 'aws-lambda';
+import { Logger } from '@aws-lambda-powertools/logger';
+import { LogStashFormatter } from './lib/LogstashFormatter';
+
+const logger = new Logger({
+  serviceName: process.env.AWS_LAMBDA_FUNCTION_NAME ?? '',
+  logFormatter: new LogStashFormatter(),
+});
 
 type OriginalImageInfo = Partial<{
   contentType: string;
-  expires: string;
-  lastModified: string;
+  expires: Date;
+  lastModified: Date;
   cacheControl: string;
   originalImage: Buffer;
 }>;
@@ -131,7 +138,7 @@ export class ImageRequest {
 
       return imageRequestInfo;
     } catch (error) {
-      console.error(error);
+      logger.warn('Error occurred while setting up the image request. Error: ', error);
 
       throw error;
     }
@@ -150,10 +157,10 @@ export class ImageRequest {
       let originalImage: GetObjectCommandOutput;
       try {
         const getObjectCommand: GetObjectCommandInput = { Bucket: bucket, Key: key };
-        console.info('Getting image from S3:', getObjectCommand);
+        logger.info('Getting image from S3:', { getObjectCommand });
         originalImage = await this.s3Client.send(new GetObjectCommand(getObjectCommand));
       } catch (error) {
-        console.error(error);
+        logger.warn('Error occurred while getting the image from S3. Error: ', error);
         throw new ImageHandlerError(
           StatusCodes.NOT_FOUND,
           'NoSuchKey',
@@ -175,11 +182,11 @@ export class ImageRequest {
       }
 
       if (originalImage.Expires) {
-        result.expires = new Date(originalImage.Expires).toUTCString();
+        result.expires = originalImage.Expires;
       }
 
       if (originalImage.LastModified) {
-        result.lastModified = new Date(originalImage.LastModified).toUTCString();
+        result.lastModified = originalImage.LastModified;
       }
 
       result.cacheControl = originalImage.CacheControl ?? 'max-age=31536000';
@@ -187,12 +194,13 @@ export class ImageRequest {
 
       return result;
     } catch (error) {
-      console.error(error);
       let status = StatusCodes.INTERNAL_SERVER_ERROR;
       let message = error.message;
       if (error.code === 'NoSuchKey') {
         status = StatusCodes.NOT_FOUND;
         message = `The image ${key} does not exist or the request may not be base64 encoded properly.`;
+      } else {
+        logger.warn('Error occurred while getting the original image. Error: ', error);
       }
       throw new ImageHandlerError(status, error.code, message);
     }
@@ -364,9 +372,9 @@ export class ImageRequest {
     const { AUTO_WEBP, AUTO_AVIF } = process.env;
     const accept = event.headers?.accept;
 
-    if (AUTO_WEBP === 'Yes' && accept && accept.includes(ContentTypes.WEBP)) {
+    if (AUTO_AVIF === 'Yes' && accept && accept.includes(ContentTypes.AVIF)) {
       return ImageFormatTypes.WEBP;
-    } else if (AUTO_AVIF === 'Yes' && accept && accept.includes(ContentTypes.AVIF)) {
+    } else if (AUTO_WEBP === 'Yes' && accept && accept.includes(ContentTypes.WEBP)) {
       return ImageFormatTypes.WEBP;
     } else if (requestType === RequestTypes.DEFAULT) {
       const decoded = this.decodeRequest(event);

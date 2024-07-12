@@ -26,8 +26,8 @@ export interface ImageRequestInfo {
   originalImage: Buffer;
   headers?: Headers;
   contentType?: string;
-  expires?: string;
-  lastModified?: string;
+  expires?: Date;
+  lastModified?: Date;
   cacheControl?: string;
   outputFormat?: ImageFormatTypes;
   effort?: number;

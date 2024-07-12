@@ -5,7 +5,7 @@ import { APIGatewayProxyEventV2 } from 'aws-lambda';
 import * as Buffer from 'node:buffer';
 import { S3 } from '@aws-sdk/client-s3';
 import { ImageFormatTypes, ImageRequestInfo, RequestTypes } from '../../src/lib';
-import { context } from './helpers';
+import { context } from '../helpers';
 import { ImageRequest } from '../../src/image-request';
 import { sdkStreamFromString } from '../mock';
 

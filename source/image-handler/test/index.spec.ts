@@ -3,16 +3,17 @@
 
 import { handler } from '../src';
 import { ImageHandlerError, StatusCodes } from '../src/lib';
-import { build_event } from './image-request/helpers';
+import { build_event } from './helpers';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { mockClient } from 'aws-sdk-client-mock';
-import { sdkStreamFromString } from './mock';
 import 'aws-sdk-client-mock-jest';
+import fs from 'fs';
+import { sdkStreamMixin } from '@smithy/util-stream';
+import { sample_image, sample_image_base64 } from './mock';
 
 describe('index', () => {
   // Arrange
   process.env.SOURCE_BUCKETS = 'source-bucket';
-  const mockImage = sdkStreamFromString('SampleImageContent\n');
   const mockS3Client = mockClient(S3Client);
 
   beforeEach(() => {
@@ -21,7 +22,7 @@ describe('index', () => {
 
   it('should return the image when there is no error', async () => {
     // Mock
-    mockS3Client.on(GetObjectCommand).resolves({ Body: mockImage, ContentType: 'image/jpeg' });
+    mockS3Client.on(GetObjectCommand).resolves({ Body: sample_image, ContentType: 'image/jpeg' });
 
     // Arrange
     const event = build_event({ rawPath: '/test.jpg' });
@@ -35,11 +36,11 @@ describe('index', () => {
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'image/jpeg',
-        Expires: undefined,
         'Cache-Control': 'max-age=31536000',
+        Expires: undefined,
         'Last-Modified': undefined,
       },
-      body: btoa('SampleImageContent\n'),
+      body: '/9j/4QC8RXhpZgAASUkqAAgAAAAGABIBAwABAAAAAQAAABoBBQABAAAAVgAAABsBBQABAAAAXgAAACgBAwABAAAAAgAAABMCAwABAAAAAQAAAGmHBAABAAAAZgAAAAAAAABIAAAAAQAAAEgAAAABAAAABgAAkAcABAAAADAyMTABkQcABAAAAAECAwAAoAcABAAAADAxMDABoAMAAQAAAP//AAACoAQAAQAAAAEAAAADoAQAAQAAAAEAAAAAAAAA/+IB8ElDQ19QUk9GSUxFAAEBAAAB4GxjbXMEIAAAbW50clJHQiBYWVogB+IAAwAUAAkADgAdYWNzcE1TRlQAAAAAc2F3c2N0cmwAAAAAAAAAAAAAAAAAAPbWAAEAAAAA0y1oYW5keem/Vlo+AbaDI4VVRvdPqgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKZGVzYwAAAPwAAAAkY3BydAAAASAAAAAid3RwdAAAAUQAAAAUY2hhZAAAAVgAAAAsclhZWgAAAYQAAAAUZ1hZWgAAAZgAAAAUYlhZWgAAAawAAAAUclRSQwAAAcAAAAAgZ1RSQwAAAcAAAAAgYlRSQwAAAcAAAAAgbWx1YwAAAAAAAAABAAAADGVuVVMAAAAIAAAAHABzAFIARwBCbWx1YwAAAAAAAAABAAAADGVuVVMAAAAGAAAAHABDAEMAMAAAWFlaIAAAAAAAAPbWAAEAAAAA0y1zZjMyAAAAAAABDD8AAAXd///zJgAAB5AAAP2S///7of///aIAAAPcAADAcVhZWiAAAAAAAABvoAAAOPIAAAOPWFlaIAAAAAAAAGKWAAC3iQAAGNpYWVogAAAAAAAAJKAAAA+FAAC2xHBhcmEAAAAAAAMAAAACZmkAAPKnAAANWQAAE9AAAApb/9sAQwAGBgYGBwYHCAgHCgsKCwoPDgwMDg8WEBEQERAWIhUZFRUZFSIeJB4cHiQeNiomJio2PjQyND5MRERMX1pffHyn/9sAQwEGBgYGBwYHCAgHCgsKCwoPDgwMDg8WEBEQERAWIhUZFRUZFSIeJB4cHiQeNiomJio2PjQyND5MRERMX1pffHyn/8IAEQgAAQABAwEiAAIRAQMRAf/EABUAAQEAAAAAAAAAAAAAAAAAAAAH/8QAFQEBAQAAAAAAAAAAAAAAAAAABQf/2gAMAwEAAhADEAAAAIOA6p//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/AH//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/AH//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/AH//2Q==',
     };
 
     // Assert

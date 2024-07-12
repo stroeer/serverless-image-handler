@@ -4,7 +4,7 @@
 import { S3 } from '@aws-sdk/client-s3';
 import { ImageRequest } from '../../src/image-request';
 import { RequestTypes, StatusCodes } from '../../src/lib';
-import { build_event } from './helpers';
+import { build_event } from '../helpers';
 
 describe('parseImageKey', () => {
   const s3Client = new S3();

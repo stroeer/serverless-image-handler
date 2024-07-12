@@ -30,7 +30,7 @@ export class ImageHandler {
   private async instantiateSharpImage(originalImage: Buffer, edits: ImageEdits, options: Object): Promise<sharp.Sharp> {
     let image: sharp.Sharp;
 
-    if (edits.rotate !== undefined && edits.rotate === null) {
+    if (edits && edits.rotate !== undefined && edits.rotate === null) {
       image = sharp(originalImage, options);
     } else {
       const metadata = await sharp(originalImage, options).metadata();
@@ -43,7 +43,7 @@ export class ImageHandler {
   }
 
   /**
-   * Modify an image's output format if specified
+   * Modify an image's output format if specified, also automatically optimize the image based on the output format or content type.
    * @param modifiedImage the image object.
    * @param imageRequestInfo the image request
    * @returns A Sharp image object
@@ -51,19 +51,22 @@ export class ImageHandler {
   private modifyImageOutput(modifiedImage: sharp.Sharp, imageRequestInfo: ImageRequestInfo): sharp.Sharp {
     const modifiedOutputImage = modifiedImage;
 
-    if (imageRequestInfo.outputFormat !== undefined) {
-      if (imageRequestInfo.outputFormat === ImageFormatTypes.WEBP && typeof imageRequestInfo.effort !== 'undefined') {
-        modifiedOutputImage.webp({ effort: imageRequestInfo.effort });
-      } else if (imageRequestInfo.outputFormat === ImageFormatTypes.WEBP) {
-        modifiedOutputImage.webp({ effort: 6 });
-      } else if (ImageFormatTypes.PNG === imageRequestInfo.outputFormat) {
-        modifiedOutputImage.png({ palette: true, quality: 100, effort: 7, compressionLevel: 6 });
-      } else if (
-        ImageFormatTypes.JPEG === imageRequestInfo.outputFormat ||
-        ImageFormatTypes.JPG === imageRequestInfo.outputFormat
-      ) {
-        modifiedOutputImage.jpeg({ mozjpeg: true });
-      }
+    if (
+      ImageFormatTypes.WEBP === imageRequestInfo.outputFormat ||
+      (undefined === imageRequestInfo.outputFormat && imageRequestInfo.contentType === ContentTypes.WEBP)
+    ) {
+      modifiedOutputImage.webp({ effort: imageRequestInfo.effort ?? 6 });
+    } else if (
+      ImageFormatTypes.PNG === imageRequestInfo.outputFormat ||
+      (undefined === imageRequestInfo.outputFormat && imageRequestInfo.contentType === ContentTypes.PNG)
+    ) {
+      modifiedOutputImage.png({ palette: true, quality: 100, effort: 7, compressionLevel: 6 });
+    } else if (
+      ImageFormatTypes.JPEG === imageRequestInfo.outputFormat ||
+      ImageFormatTypes.JPG === imageRequestInfo.outputFormat ||
+      (undefined === imageRequestInfo.outputFormat && imageRequestInfo.contentType === ContentTypes.JPEG)
+    ) {
+      modifiedOutputImage.jpeg({ mozjpeg: true });
     }
 
     return modifiedOutputImage;
@@ -86,7 +89,7 @@ export class ImageHandler {
         typeof edits.animated !== 'undefined' ? edits.animated : imageRequestInfo.contentType === ContentTypes.GIF;
       let image = await this.instantiateSharpImage(originalImage, edits, options);
 
-      // default to non animated if image does not have multiple pages
+      // default to non-animated if image does not have multiple pages
       if (options.animated) {
         const metadata = await image.metadata();
         if (!metadata.pages || metadata.pages <= 1) {
@@ -103,16 +106,12 @@ export class ImageHandler {
       const imageBuffer = await modifiedImage.toBuffer();
       base64EncodedImage = imageBuffer.toString('base64');
     } else {
-      if (imageRequestInfo.outputFormat !== undefined) {
-        // convert image to Sharp and change output format if specified
-        const modifiedImage = this.modifyImageOutput(sharp(originalImage, options), imageRequestInfo);
-        // convert to base64 encoded string
-        const imageBuffer = await modifiedImage.toBuffer();
-        base64EncodedImage = imageBuffer.toString('base64');
-      } else {
-        // no edits or output format changes, convert to base64 encoded image
-        base64EncodedImage = originalImage.toString('base64');
-      }
+      // convert image to Sharp and change output format if specified
+      let image = await this.instantiateSharpImage(originalImage, edits, options);
+      const modifiedImage = this.modifyImageOutput(image, imageRequestInfo);
+      // convert to base64 encoded string
+      const imageBuffer = await modifiedImage.toBuffer();
+      base64EncodedImage = imageBuffer.toString('base64');
     }
 
     // binary data need to be base64 encoded to pass to the API Gateway proxy https://docs.aws.amazon.com/apigateway/latest/developerguide/lambda-proxy-binary-media.html.

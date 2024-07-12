@@ -3,7 +3,7 @@
 
 import { S3 } from '@aws-sdk/client-s3';
 import { ImageRequest } from '../../src/image-request';
-import { build_event } from './helpers';
+import { build_event } from '../helpers';
 
 describe('getOutputFormat', () => {
   const s3Client = new S3();
