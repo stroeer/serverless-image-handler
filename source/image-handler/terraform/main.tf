@@ -17,7 +17,7 @@ module "lambda" {
   cloudwatch_logs_enabled          = false
   description                      = "provider of cute kitty pics."
   function_name                    = local.function_name
-  ignore_external_function_updates = false
+  ignore_external_function_updates = true
   memory_size                      = 1536
   publish                          = true
   runtime                          = "nodejs20.x"
@@ -71,9 +71,9 @@ resource "aws_s3_object" "this" {
   source = fileexists(local.zip_package) ? local.zip_package : null
   etag   = fileexists(local.zip_package) ? filemd5(local.zip_package) : null
 
-  #  lifecycle {
-  #    ignore_changes = [etag, source, version_id, tags_all]
-  #  }
+   lifecycle {
+     ignore_changes = [etag, source, version_id, tags_all]
+   }
 }
 
 resource "aws_lambda_alias" "this" {
@@ -82,24 +82,24 @@ resource "aws_lambda_alias" "this" {
   function_version = module.lambda.version
   name             = local.environment
 
-#   lifecycle {
-#     ignore_changes = [function_version]
-#   }
+  lifecycle {
+    ignore_changes = [function_version]
+  }
 }
 
-# module "deployment" {
-#   source  = "registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment"
-#   version = "7.5.0"
-#
-#   alias_name                                  = aws_lambda_alias.this.name
-#   codebuild_cloudwatch_logs_retention_in_days = 7
-#   codestar_notifications_target_arn           = data.aws_sns_topic.notifications.arn
-#   codepipeline_artifact_store_bucket          = data.aws_s3_bucket.pipeline_artifacts.bucket
-#   codepipeline_type                           = "V2"
-#   s3_bucket                                   = data.aws_s3_bucket.ci.bucket
-#   s3_key                                      = local.s3_key
-#   function_name                               = local.function_name
-# }
+module "deployment" {
+  source  = "registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment"
+  version = "7.5.0"
+
+  alias_name                                  = aws_lambda_alias.this.name
+  codebuild_cloudwatch_logs_retention_in_days = 7
+  codestar_notifications_target_arn           = data.aws_sns_topic.notifications.arn
+  codepipeline_artifact_store_bucket          = data.aws_s3_bucket.pipeline_artifacts.bucket
+  codepipeline_type                           = "V2"
+  s3_bucket                                   = data.aws_s3_bucket.ci.bucket
+  s3_key                                      = local.s3_key
+  function_name                               = local.function_name
+}
 
 resource "opensearch_role" "logs_write_access" {
   role_name   = local.function_name
