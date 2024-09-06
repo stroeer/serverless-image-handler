@@ -135,8 +135,8 @@ describe('index', () => {
         'Cache-Control': 'max-age=3600, immutable',
       },
       body: JSON.stringify({
-        code: 'Crop::AreaOutOfBounds',
         message: `The cropping area you provided exceeds the boundaries of the original image. Please try choosing a correct cropping value.`,
+        code: 'Crop::AreaOutOfBounds',
         status: StatusCodes.BAD_REQUEST,
       }),
     };

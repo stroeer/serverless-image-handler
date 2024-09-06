@@ -179,9 +179,9 @@ export function getErrorResponse(error) {
         statusCode: statusCode,
         headers: getResponseHeaders(true, statusCode),
         body: JSON.stringify({
-          code: 'Crop::AreaOutOfBounds',
           message:
             'The cropping area you provided exceeds the boundaries of the original image. Please try choosing a correct cropping value.',
+          code: 'Crop::AreaOutOfBounds',
           status: statusCode,
         }),
       };
