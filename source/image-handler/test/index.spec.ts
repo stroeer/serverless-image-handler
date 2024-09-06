@@ -66,6 +66,7 @@ describe('index', () => {
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'application/json',
+        'Cache-Control': 'max-age=3600, immutable',
       },
       body: JSON.stringify({
         status: StatusCodes.NOT_FOUND,
@@ -99,6 +100,7 @@ describe('index', () => {
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'application/json',
+        'Cache-Control': 'max-age=31536000, immutable',
       },
       body: JSON.stringify({
         message: `HTTP/410. Content test.webp has expired.`,
@@ -130,10 +132,11 @@ describe('index', () => {
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Content-Type': 'application/json',
+        'Cache-Control': 'max-age=3600, immutable',
       },
       body: JSON.stringify({
-        code: 'Crop::AreaOutOfBounds',
         message: `The cropping area you provided exceeds the boundaries of the original image. Please try choosing a correct cropping value.`,
+        code: 'Crop::AreaOutOfBounds',
         status: StatusCodes.BAD_REQUEST,
       }),
     };
