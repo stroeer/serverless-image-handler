@@ -112,6 +112,8 @@ function getResponseHeaders(isError: boolean = false, statusCode: number = Statu
 
   if (isError) {
     headers['Content-Type'] = 'application/json';
+  } else {
+    headers['Vary'] = 'Accept';
   }
 
   switch (statusCode) {
