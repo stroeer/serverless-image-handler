@@ -13,7 +13,7 @@
     "sharp": "0.33.4"
   },
   "devDependencies": {
-    "@aws-lambda-powertools/logger": "2.4.0",
+    "@aws-lambda-powertools/logger": "2.10.0",
     "@types/color": "^3.0.6",
     "@types/color-name": "^1.1.4",
     "@types/sharp": "^0.32.0",
