@@ -9,6 +9,13 @@ updates:
       interval: "weekly"
     reviewers:
       - "stroeer/teams/buzz-end"
+    groups:
+      npm:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -16,6 +23,13 @@ updates:
       interval: "weekly"
     reviewers:
       - "stroeer/teams/buzz-end"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "terraform"
     directory: "/source/image-handler/terraform"
@@ -23,6 +37,14 @@ updates:
       interval: "weekly"
     reviewers:
       - "stroeer/teams/buzz-end"
+    groups:
+      terraform-image-handler:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
 
   - package-ecosystem: "terraform"
     directory: "/source/thumbs/terraform"
@@ -30,6 +52,13 @@ updates:
       interval: "weekly"
     reviewers:
       - "stroeer/teams/buzz-end"
+    groups:
+      terraform-thumbs:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # Enable version updates for Cargo
   - package-ecosystem: "cargo"
@@ -40,3 +69,10 @@ updates:
       interval: "weekly"
     reviewers:
       - "stroeer/teams/buzz-end"
+    groups:
+      cargo:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
