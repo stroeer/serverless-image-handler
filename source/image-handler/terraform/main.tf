@@ -1,8 +1,8 @@
 locals {
   function_name = join("-", compact(["image-handler", var.app_suffix]))
-  environment = "production"
-  zip_package = "../dist/image-handler.zip"
-  s3_key      = "image-handler/${local.function_name}.zip"
+  environment   = "production"
+  zip_package   = "../dist/image-handler.zip"
+  s3_key        = "image-handler/${local.function_name}.zip"
 }
 
 module "lambda" {
@@ -40,7 +40,7 @@ module "lambda" {
 
   vpc_config = {
     security_group_ids = [data.aws_security_group.vpc_endpoints.id, data.aws_security_group.all_outbound.id, data.aws_security_group.lambda.id]
-    subnet_ids = data.aws_subnets.selected.ids
+    subnet_ids         = data.aws_subnets.selected.ids
   }
 }
 
@@ -71,9 +71,9 @@ resource "aws_s3_object" "this" {
   source = fileexists(local.zip_package) ? local.zip_package : null
   etag   = fileexists(local.zip_package) ? filemd5(local.zip_package) : null
 
-   lifecycle {
-     ignore_changes = [etag, source, version_id, tags_all]
-   }
+  lifecycle {
+    ignore_changes = [etag, source, version_id, tags_all]
+  }
 }
 
 resource "aws_lambda_alias" "this" {
@@ -102,18 +102,18 @@ module "deployment" {
 }
 
 resource "opensearch_role" "logs_write_access" {
-  role_name   = local.function_name
-  description = "Write access for ${local.function_name} lambda"
+  role_name           = local.function_name
+  description         = "Write access for ${local.function_name} lambda"
   cluster_permissions = ["indices:data/write/bulk"]
 
   index_permissions {
-    index_patterns = ["${local.function_name}-lambda-*"]
+    index_patterns  = ["${local.function_name}-lambda-*"]
     allowed_actions = ["write", "create_index"]
   }
 }
 
 resource "opensearch_roles_mapping" "logs_write_access" {
-  role_name = opensearch_role.logs_write_access.role_name
+  role_name     = opensearch_role.logs_write_access.role_name
   backend_roles = [module.lambda.role_arn]
 }
 
@@ -127,7 +127,7 @@ resource "aws_lambda_layer_version" "sharp" {
   skip_destroy      = true
   source_code_hash  = filebase64sha256("${path.module}/lambda-layer.zip")
 
-  compatible_runtimes = ["nodejs16.x", "nodejs18.x", "nodejs20.x"]
+  compatible_runtimes      = ["nodejs16.x", "nodejs18.x", "nodejs20.x"]
   compatible_architectures = ["arm64"]
 
 }

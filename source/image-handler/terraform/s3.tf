@@ -75,7 +75,7 @@ resource "aws_kms_key_policy" "images" {
         "Resource" : "*",
         "Condition" : {
           "StringEquals" : {
-            "aws:SourceArn" : data.aws_cloudfront_distribution.images.arn
+            "aws:SourceArn" : [data.aws_cloudfront_distribution.images.arn, data.aws_cloudfront_distribution.audio.arn]
           }
         }
       },
@@ -169,6 +169,21 @@ data "aws_iam_policy_document" "deny_insecure_transport" {
       values   = [data.aws_cloudfront_distribution.images.arn]
     }
     sid = "AllowCloudFrontServicePrincipalReadOnly"
+  }
+
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.images[count.index].arn}/audio/*"]
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+    condition {
+      variable = "AWS:SourceArn"
+      test     = "StringEquals"
+      values   = [data.aws_cloudfront_distribution.audio.arn]
+    }
+    sid = "AudioCloudFrontServicePrincipalReadOnly"
   }
 }
 
