@@ -44,6 +44,10 @@ data "aws_cloudfront_distribution" "images" {
   id = "E3K0UX29CMXL6T"
 }
 
+data "aws_cloudfront_distribution" "audio" {
+  id = "E3LYAP70MMW9OI"
+}
+
 data "aws_ssm_parameter" "logging_layer" {
   name = "/internal/lambda-logging-oss/arm64/layer_arn"
 }
