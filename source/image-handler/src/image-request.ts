@@ -163,6 +163,14 @@ export class ImageRequest {
           `The image ${key} does not exist or the request may not be base64 encoded properly.`,
         );
       }
+
+      if (
+        originalImage.Metadata &&
+        originalImage.Metadata.hasOwnProperty('buzz-status-code') &&
+        originalImage.Metadata['buzz-status-code'] === '410'
+      ) {
+        throw new ImageHandlerError(StatusCodes.GONE, 'Gone', `HTTP/410. The image ${key} has been removed.`);
+      }
       let bodyBytes = await originalImage.Body?.transformToByteArray();
       const imageBuffer = Buffer.from(bodyBytes);
 
@@ -192,9 +200,9 @@ export class ImageRequest {
     } catch (error) {
       let status = StatusCodes.INTERNAL_SERVER_ERROR;
       let message = error.message;
-      if (error.code === 'NoSuchKey') {
-        status = StatusCodes.NOT_FOUND;
-        message = `The image ${key} does not exist or the request may not be base64 encoded properly.`;
+      if (error instanceof ImageHandlerError) {
+        status = error.status;
+        message = error.message;
       } else {
         logger.warn('Error occurred while getting the original image. Error: ', error);
       }
