@@ -13,8 +13,13 @@ provider "aws" {
 
 }
 
+data "aws_iam_role" "cognito_admin" {
+  name = "Cognito-Authenticated-Admin"
+}
+
 provider "opensearch" {
-  aws_region  = var.region
-  healthcheck = true
-  url         = "https://logs.stroeer.engineering"
+  aws_assume_role_arn = data.aws_iam_role.cognito_admin.arn
+  aws_region          = var.region
+  healthcheck         = false
+  url                 = "https://logs.stroeer.engineering"
 }

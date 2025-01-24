@@ -172,8 +172,8 @@ data "aws_iam_policy_document" "deny_insecure_transport" {
   }
 
   statement {
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.images[count.index].arn}/audio/*"]
+    actions = ["s3:GetObject", "s3:ListBucket"]
+    resources = [aws_s3_bucket.images[count.index].arn, "${aws_s3_bucket.images[count.index].arn}/audio/*"]
     principals {
       type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
