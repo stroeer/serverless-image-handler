@@ -175,6 +175,17 @@ export function getErrorResponse(error) {
      * if an image crop is attempted and the crop has greater dimensions
      * than the base image, sharp will throw an exception and return this string
      */
+    case 'Input image exceeds pixel limit':
+      statusCode = StatusCodes.REQUEST_TOO_LONG;
+      return {
+        statusCode: statusCode,
+        headers: getResponseHeaders(true, statusCode),
+        body: JSON.stringify({
+          message: error?.message,
+          code: 'TooLargeImageException',
+          status: statusCode,
+        }),
+      };
     case 'extract_area: bad extract area':
       statusCode = StatusCodes.BAD_REQUEST;
       return {
