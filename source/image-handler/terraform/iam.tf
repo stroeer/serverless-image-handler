@@ -19,3 +19,14 @@ resource "aws_iam_role_policy_attachment" "lambda" {
   role       = module.lambda.role_name
   policy_arn = aws_iam_policy.lambda.arn
 }
+
+module "github-oidc-role" {
+  source  = "stroeer/github-oidc-role/aws"
+  version = "0.1.3"
+
+  github_repository = "stroeer/serverless-image-handler"
+  github_refs       = ["main"]
+  s3_prefixes = [
+    "ci-${var.account_id}-${var.region}/image-handler"
+  ]
+}

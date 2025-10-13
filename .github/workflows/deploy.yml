@@ -49,7 +49,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'stroeer' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::053041861227:role/github-s3-access-eu-west-1
+          role-to-assume: arn:aws:iam::053041861227:role/github-actions-serverless-image-handler-eu-west-1
           role-session-name: GitHubActions
           aws-region: eu-west-1
 
