@@ -47,7 +47,7 @@ jobs:
         # 1. is a 'push to main'
         # 2. did not run in a fork
         if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'stroeer' }}
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: arn:aws:iam::053041861227:role/github-actions-serverless-image-handler-eu-west-1
           role-session-name: GitHubActions
