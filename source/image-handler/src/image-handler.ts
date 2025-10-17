@@ -3,15 +3,7 @@
 
 import sharp, { FormatEnum, OverlayOptions, SharpOptions } from 'sharp';
 
-import {
-  ContentTypes,
-  ImageEdits,
-  ImageFitTypes,
-  ImageFormatTypes,
-  ImageHandlerError,
-  ImageRequestInfo,
-  StatusCodes,
-} from './lib';
+import { ContentTypes, ImageEdits, ImageFitTypes, ImageFormatTypes, ImageHandlerError, ImageRequestInfo, StatusCodes, } from './lib';
 import { S3 } from '@aws-sdk/client-s3';
 import { rgbaToThumbHash } from './lib/thumbhash';
 
@@ -292,7 +284,7 @@ export class ImageHandler {
    * @returns whether the edit needs to be skipped or not.
    */
   private skipEdit(edit: string, isAnimation: boolean): boolean {
-    return isAnimation && ['rotate', 'smartCrop', 'roundCrop', 'contentModeration'].includes(edit);
+    return isAnimation && ['rotate', 'smartCrop', 'roundCrop'].includes(edit);
   }
 
   /**

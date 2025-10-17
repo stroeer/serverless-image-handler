@@ -381,6 +381,10 @@ export class ThumborMapper {
         currentEdits.thumbhash = true;
         break;
       }
+      case 'negate': {
+        currentEdits.negate = null;
+        break;
+      }
     }
 
     return currentEdits;
