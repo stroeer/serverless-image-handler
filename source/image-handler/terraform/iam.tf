@@ -22,7 +22,7 @@ resource "aws_iam_role_policy_attachment" "lambda" {
 
 module "github-oidc-role" {
   source  = "stroeer/github-oidc-role/aws"
-  version = "0.1.3"
+  version = "0.2.0"
 
   github_repository = "stroeer/serverless-image-handler"
   github_refs       = ["main"]
