@@ -284,7 +284,7 @@ export class ThumborMapper {
    * @returns Cumulative edits based on the previous edits and the current filter.
    */
   public mapFilter(filterExpression: string, fileFormat: ImageFormatTypes, previousEdits: ImageEdits = {}): ImageEdits {
-    const matched = filterExpression.match(/:(.+)\((.*)\)/); // NOSONAR
+    const matched = filterExpression.match(/:(.+)\((.*)\)/);
     const [_, filterName, filterValue] = matched;
     const currentEdits = { ...previousEdits };
 
@@ -382,7 +382,13 @@ export class ThumborMapper {
         break;
       }
       case 'negate': {
-        currentEdits.negate = null;
+        if (filterValue === 'true' || filterValue === 'false') {
+          const negateAlpha = filterValue === 'true';
+          currentEdits.negate = { alpha: negateAlpha };
+        } else {
+          currentEdits.negate = null; // defaults to 'true'
+        }
+
         break;
       }
     }

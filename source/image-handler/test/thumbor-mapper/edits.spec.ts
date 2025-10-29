@@ -56,6 +56,54 @@ describe('edits', () => {
     expect(edits).toEqual(expectedResult.edits);
   });
 
+  it('Should pass if negate options are parsed correctly', () => {
+    const path = '/filters:negate()/thumbor-image.jpg';
+
+    // Act
+    const thumborMapper = new ThumborMapper();
+    const edits = thumborMapper.mapPathToEdits(path);
+
+    // Assert
+    const expectedResult = {
+      edits: {
+        negate: null,
+      },
+    };
+    expect(edits).toEqual(expectedResult.edits);
+  });
+
+  it('Should pass if negate(true) options are parsed correctly', () => {
+    const path = '/filters:negate(true)/thumbor-image.jpg';
+
+    // Act
+    const thumborMapper = new ThumborMapper();
+    const edits = thumborMapper.mapPathToEdits(path);
+
+    // Assert
+    const expectedResult = {
+      edits: {
+        negate: { alpha: true },
+      },
+    };
+    expect(edits).toEqual(expectedResult.edits);
+  });
+
+  it('Should pass if negate(false) options are parsed correctly', () => {
+    const path = '/filters:negate(false)/thumbor-image.jpg';
+
+    // Act
+    const thumborMapper = new ThumborMapper();
+    const edits = thumborMapper.mapPathToEdits(path);
+
+    // Assert
+    const expectedResult = {
+      edits: {
+        negate: { alpha: false },
+      },
+    };
+    expect(edits).toEqual(expectedResult.edits);
+  });
+
   it('Should pass even if there are slashes in the filter', () => {
     const path = '/filters:watermark(bucket,folder/key.png,0,0)/image.jpg';
 
