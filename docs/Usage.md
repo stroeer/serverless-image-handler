@@ -151,9 +151,10 @@ It is suggested to force _PNG_ as format, as _JPEG_ does not (?) support transpa
 So in case a _JPEG_ is used (like here) and your Browser does not support _WEBP_, there will be a
 black frame.
 
-### Effects `/filters:negate()/`
+### Effects `/filters:negate(true|false)/`
 
-"Produce the “negative” of the image."
+"Produce the “negative” of the image." Use `true` or `false` to control whether or not to negate any alpha channel.
+Defaults to `true`.
 
 ![crop](https://images.t-online.de/filters:negate()/4k_hdr.jpg)
 
