@@ -37,7 +37,7 @@ describe('parse', () => {
     // Assert
     expect(() => {
       thumborMapper.parseCustomPath(path);
-    }).toThrowError(new Error('ThumborMapping::ParseCustomPath::PathUndefined'));
+    }).toThrow(new Error('ThumborMapping::ParseCustomPath::PathUndefined'));
   });
 
   it('Should throw an error if the environment variables are left undefined', () => {
@@ -50,7 +50,7 @@ describe('parse', () => {
     // Assert
     expect(() => {
       thumborMapper.parseCustomPath(path);
-    }).toThrowError(new Error('ThumborMapping::ParseCustomPath::RewriteMatchPatternUndefined'));
+    }).toThrow(new Error('ThumborMapping::ParseCustomPath::RewriteMatchPatternUndefined'));
   });
 
   it('Should throw an error if the path is not defined', () => {
@@ -63,6 +63,6 @@ describe('parse', () => {
     // Assert
     expect(() => {
       thumborMapper.parseCustomPath(path);
-    }).toThrowError(new Error('ThumborMapping::ParseCustomPath::RewriteSubstitutionUndefined'));
+    }).toThrow(new Error('ThumborMapping::ParseCustomPath::RewriteSubstitutionUndefined'));
   });
 });

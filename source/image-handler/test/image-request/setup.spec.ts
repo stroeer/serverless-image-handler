@@ -8,8 +8,6 @@ import { sampleImageStream, sdkStreamFromString } from '../mock';
 import { build_event } from '../helpers';
 import 'aws-sdk-client-mock-jest';
 import { mockClient } from 'aws-sdk-client-mock';
-import fs, { createReadStream } from 'fs';
-import { sdkStreamMixin } from '@smithy/util-stream';
 
 describe('setup', () => {
   const OLD_ENV = process.env;

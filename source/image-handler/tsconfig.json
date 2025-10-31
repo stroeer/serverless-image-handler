@@ -1,8 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Node 18",
-
-  "_version": "18.2.0",
+  "display": "Node 22",
+  "_version": "22.13.1",
 
   "compilerOptions": {
     "lib": ["es2023"],
@@ -15,7 +14,9 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node16",
     "isolatedModules": true,
-
-    "types": ["jest", "node"]
+    "types": [
+      "@types/jest",
+      "node"
+    ]
   }
 }
