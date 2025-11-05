@@ -28,9 +28,14 @@ class LogStashFormatter extends LogFormatter {
     };
     const logItem = new LogItem({ attributes: baseAttributes });
     if (additionalLogAttributes) {
-      if (additionalLogAttributes.hasOwnProperty('imageRequestInfo')) {
-        let additionalLogAttribute = additionalLogAttributes['imageRequestInfo'];
-        additionalLogAttribute['originalImage'] = undefined;
+      if (
+        additionalLogAttributes.hasOwnProperty('imageRequestInfo') &&
+        typeof additionalLogAttributes.imageRequestInfo === 'object'
+      ) {
+        additionalLogAttributes['imageRequestInfo'] = {
+          ...additionalLogAttributes['imageRequestInfo'],
+          originalImage: undefined,
+        };
       }
       if (additionalLogAttributes.hasOwnProperty('headers')) {
         let headers = additionalLogAttributes['headers'];

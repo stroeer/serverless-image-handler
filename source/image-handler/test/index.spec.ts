@@ -1,13 +1,13 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { handler } from '../src';
 import { ImageHandlerError, StatusCodes } from '../src/lib';
 import { build_event } from './helpers';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { sampleImageStream } from './mock';
+import { handler } from '../src';
 
 describe('index', () => {
   // Arrange
