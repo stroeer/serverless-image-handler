@@ -7,7 +7,7 @@ locals {
 
 module "lambda" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws"
-  version = "7.5.0"
+  version = "8.4.0"
 
   architectures = ["arm64"]
   layers = [
@@ -89,7 +89,7 @@ resource "aws_lambda_alias" "this" {
 
 module "deployment" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment"
-  version = "7.5.0"
+  version = "8.4.0"
 
   alias_name                                  = aws_lambda_alias.this.name
   codebuild_cloudwatch_logs_retention_in_days = 7
