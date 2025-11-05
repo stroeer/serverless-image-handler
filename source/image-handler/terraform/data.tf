@@ -51,3 +51,7 @@ data "aws_cloudfront_distribution" "audio" {
 data "aws_ssm_parameter" "logging_layer" {
   name = "/internal/lambda-logging-oss/arm64/layer_arn"
 }
+
+data "aws_ssm_parameter" "logs" {
+  name = "/internal/lambda-logging-oss/arm64/layer_arn"
+}

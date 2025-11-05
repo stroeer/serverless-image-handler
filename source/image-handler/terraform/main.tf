@@ -11,7 +11,7 @@ module "lambda" {
 
   architectures = ["arm64"]
   layers = [
-    "arn:aws:lambda:eu-west-1:053041861227:layer:CustomLoggingExtensionOpenSearch-Arm64:12",
+    nonsensitive(data.aws_ssm_parameter.logs.value),
     aws_lambda_layer_version.sharp.arn
   ]
   cloudwatch_logs_enabled          = false
@@ -20,7 +20,7 @@ module "lambda" {
   ignore_external_function_updates = true
   memory_size                      = 2048
   publish                          = true
-  runtime                          = "nodejs20.x"
+  runtime = "nodejs22.x"
   handler                          = "index.handler"
   s3_bucket                        = aws_s3_object.this.bucket
   s3_key                           = aws_s3_object.this.key
@@ -121,34 +121,33 @@ resource "aws_lambda_layer_version" "sharp" {
   layer_name  = "sharp-image-library"
   description = "Lambda layer with sharp image library"
 
-  s3_bucket         = aws_s3_bucket_object.sharp.bucket
-  s3_key            = aws_s3_bucket_object.sharp.key
-  s3_object_version = aws_s3_bucket_object.sharp.version_id
+  s3_bucket         = aws_s3_object.sharp.bucket
+  s3_key            = aws_s3_object.sharp.key
+  s3_object_version = aws_s3_object.sharp.version_id
   skip_destroy      = true
   source_code_hash  = filebase64sha256("${path.module}/lambda-layer.zip")
 
-  compatible_runtimes      = ["nodejs16.x", "nodejs18.x", "nodejs20.x"]
+  compatible_runtimes = ["nodejs20.x", "nodejs22.x"]
   compatible_architectures = ["arm64"]
 
 }
 
-resource "aws_s3_bucket_object" "sharp" {
+resource "aws_s3_object" "sharp" {
   bucket = data.aws_s3_bucket.ci.bucket
   key    = "image-handler/sharp-lambda-layer.zip"
   source = "${path.module}/lambda-layer.zip"
 
   depends_on = [
-    null_resource.lambda_jar
+    terraform_data.lambda_jar
   ]
 }
 
 locals {
-  sharp_version = "0.33.4"
+  sharp_version = "0.34.4"
 }
-resource "null_resource" "lambda_jar" {
-  triggers = {
-    on_version_change = local.sharp_version
-  }
+
+resource "terraform_data" "lambda_jar" {
+  triggers_replace = [local.sharp_version]
 
   provisioner "local-exec" {
     command = "curl -sL --ssl-no-revoke -o lambda-layer.zip https://github.com/pH200/sharp-layer/releases/download/${local.sharp_version}/release-arm64.zip"
