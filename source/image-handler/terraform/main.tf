@@ -7,7 +7,7 @@ locals {
 
 module "lambda" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws"
-  version = "7.5.0"
+  version = "8.4.0"
 
   architectures = ["arm64"]
   layers = [
