@@ -33,7 +33,7 @@
     "pretest": "npm i --quiet",
     "build:init": "rm -rf package-lock.json dist/ coverage/",
     "build:zip": "cd dist && zip -r image-handler.zip *.js node_modules",
-    "build": "npm run build:init && npm install --cpu=arm64 --os=linux && tsup && npm run build:zip",
+    "build": "npm run build:init && npm install && tsup && npm run build:zip",
     "test": "jest --coverage --silent",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\""
   },

@@ -141,3 +141,17 @@ If required once more, they need to be pulled from the original repository:
 - Watermarking/Overlaying
 - Secretsmanager and URL signing
 - Dynamic S3 bucket selection
+
+### Updating Sharp version
+
+You need to keep the sharp version in `package.json` and the lambda layer in sync.
+
+First, create a new lambda layer version with the updated sharp version.
+
+```terraform
+locals {
+  sharp_version = "0.34.4"
+}
+```
+
+Then update the function code and create a new lambda version.
