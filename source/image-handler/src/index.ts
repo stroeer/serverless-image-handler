@@ -23,7 +23,7 @@ export const logger = new Logger({
  */
 export async function handler(event: APIGatewayProxyEventV2): Promise<ImageHandlerExecutionResult> {
   logger.appendKeys({ ...event, originalImage: undefined });
-  logger.info('Image manipulation request', { headers: event.headers });
+  logger.debug('Image manipulation request', { headers: event.headers });
 
   const imageRequest = new ImageRequest(s3Client);
   const imageHandler = new ImageHandler(s3Client);
