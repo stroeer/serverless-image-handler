@@ -143,7 +143,7 @@ resource "aws_s3_object" "sharp" {
 }
 
 locals {
-  sharp_version = "0.34.4"
+  sharp_version = "0.34.5"
 }
 
 resource "terraform_data" "lambda_jar" {

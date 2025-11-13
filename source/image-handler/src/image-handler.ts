@@ -1,9 +1,17 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import sharp, { FormatEnum, OverlayOptions, SharpOptions } from 'sharp';
+import sharp, { OverlayOptions, SharpOptions } from 'sharp';
 
-import { ContentTypes, ImageEdits, ImageFitTypes, ImageFormatTypes, ImageHandlerError, ImageRequestInfo, StatusCodes, } from './lib';
+import {
+  ContentTypes,
+  ImageEdits,
+  ImageFitTypes,
+  ImageFormatTypes,
+  ImageHandlerError,
+  ImageRequestInfo,
+  StatusCodes,
+} from './lib';
 import { S3 } from '@aws-sdk/client-s3';
 import { rgbaToThumbHash } from './lib/thumbhash';
 
@@ -64,6 +72,11 @@ export class ImageHandler {
       (undefined === imageRequestInfo.outputFormat && imageRequestInfo.contentType === ContentTypes.JPEG)
     ) {
       modifiedOutputImage.jpeg({ mozjpeg: true });
+    } else if (
+      ImageFormatTypes.AVIF == imageRequestInfo.outputFormat ||
+      (undefined === imageRequestInfo.outputFormat && imageRequestInfo.contentType === ContentTypes.AVIF)
+    ) {
+      modifiedOutputImage.avif({ quality: 75, effort: 7 });
     }
 
     return modifiedOutputImage;
@@ -286,41 +299,6 @@ export class ImageHandler {
   private skipEdit(edit: string, isAnimation: boolean): boolean {
     return isAnimation && ['rotate', 'smartCrop', 'roundCrop'].includes(edit);
   }
-
-  /**
-   * Converts serverless image handler image format type to 'sharp' format.
-   * @param imageFormatType Result output file type.
-   * @returns Converted 'sharp' format.
-   */
-  private static convertImageFormatType(imageFormatType: ImageFormatTypes): keyof FormatEnum {
-    switch (imageFormatType) {
-      case ImageFormatTypes.JPG:
-        return 'jpg';
-      case ImageFormatTypes.JPEG:
-        return 'jpeg';
-      case ImageFormatTypes.PNG:
-        return 'png';
-      case ImageFormatTypes.WEBP:
-        return 'webp';
-      case ImageFormatTypes.TIFF:
-        return 'tiff';
-      case ImageFormatTypes.HEIF:
-        return 'heif';
-      case ImageFormatTypes.RAW:
-        return 'raw';
-      case ImageFormatTypes.GIF:
-        return 'gif';
-      case ImageFormatTypes.AVIF:
-        return 'avif';
-      default:
-        throw new ImageHandlerError(
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          'UnsupportedOutputImageFormatException',
-          `Format to ${imageFormatType} not supported`,
-        );
-    }
-  }
-
   private async thumbhash(image: sharp.Sharp, imageRequestInfo: ImageRequestInfo): Promise<string> {
     const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     const binaryThumbHash = rgbaToThumbHash(info.width, info.height, data);
