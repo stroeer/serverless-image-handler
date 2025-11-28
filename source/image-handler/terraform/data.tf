@@ -53,5 +53,5 @@ data "aws_ssm_parameter" "logging_layer" {
 }
 
 data "aws_ssm_parameter" "logs" {
-  name = "/internal/lambda-logging-oss/arm64/layer_arn"
+  name = "/internal/lambda-logging-oss/amd64/layer_arn"
 }

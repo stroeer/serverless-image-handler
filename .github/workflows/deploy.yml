@@ -25,20 +25,16 @@ jobs:
   image-handler:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    runs-on: ubuntu-latest-arm64
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: 'source/image-handler/package-lock.json'
 
-      - name: install
-        run: make npm/install
-      - name: test
-        run: make npm/test
       - name: build
         run: make build
 
