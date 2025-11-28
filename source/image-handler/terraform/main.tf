@@ -9,18 +9,16 @@ module "lambda" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws"
   version = "8.4.0"
 
-  architectures = ["arm64"]
-  layers = [
-    nonsensitive(data.aws_ssm_parameter.logs.value),
-    aws_lambda_layer_version.sharp.arn
-  ]
+  # we experience issues with arm64 and sharp library fucking up avif files
+  architectures                    = ["x86_64"]
+  layers                           = [nonsensitive(data.aws_ssm_parameter.logs.value)]
   cloudwatch_logs_enabled          = false
   description                      = "provider of cute kitty pics."
   function_name                    = local.function_name
   ignore_external_function_updates = true
   memory_size                      = 2048
   publish                          = true
-  runtime = "nodejs22.x"
+  runtime                          = "nodejs24.x"
   handler                          = "index.handler"
   s3_bucket                        = aws_s3_object.this.bucket
   s3_key                           = aws_s3_object.this.key
@@ -33,8 +31,6 @@ module "lambda" {
       CORS_ENABLED   = "Yes"
       CORS_ORIGIN    = "*"
       SOURCE_BUCKETS = "master-images-${var.account_id}-${var.region}"
-
-      LOG_EXT_OPEN_SEARCH_URL = "https://logs.stroeer.engineering"
     }
   }
 
@@ -89,7 +85,7 @@ resource "aws_lambda_alias" "this" {
 
 module "deployment" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment"
-  version = "7.5.0"
+  version = "8.4.0"
 
   alias_name                                  = aws_lambda_alias.this.name
   codebuild_cloudwatch_logs_retention_in_days = 7
@@ -115,41 +111,4 @@ resource "opensearch_role" "logs_write_access" {
 resource "opensearch_roles_mapping" "logs_write_access" {
   role_name     = opensearch_role.logs_write_access.role_name
   backend_roles = [module.lambda.role_arn]
-}
-
-resource "aws_lambda_layer_version" "sharp" {
-  layer_name  = "sharp-image-library"
-  description = "Lambda layer with sharp image library"
-
-  s3_bucket         = aws_s3_object.sharp.bucket
-  s3_key            = aws_s3_object.sharp.key
-  s3_object_version = aws_s3_object.sharp.version_id
-  skip_destroy      = true
-  source_code_hash  = filebase64sha256("${path.module}/lambda-layer.zip")
-
-  compatible_runtimes = ["nodejs20.x", "nodejs22.x"]
-  compatible_architectures = ["arm64"]
-
-}
-
-resource "aws_s3_object" "sharp" {
-  bucket = data.aws_s3_bucket.ci.bucket
-  key    = "image-handler/sharp-lambda-layer.zip"
-  source = "${path.module}/lambda-layer.zip"
-
-  depends_on = [
-    terraform_data.lambda_jar
-  ]
-}
-
-locals {
-  sharp_version = "0.34.5"
-}
-
-resource "terraform_data" "lambda_jar" {
-  triggers_replace = [local.sharp_version]
-
-  provisioner "local-exec" {
-    command = "curl -sL --ssl-no-revoke -o lambda-layer.zip https://github.com/pH200/sharp-layer/releases/download/${local.sharp_version}/release-arm64.zip"
-  }
 }

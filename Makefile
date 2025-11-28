@@ -22,20 +22,31 @@ clean:
 	@echo "+ $@"
 	@cd $(WORK_DIR) && rm -rf ./dist/ ./node_modules/
 
-.PHONY: npm/install
-npm/install:
-	@echo "+ $@"
-	cd $(WORK_DIR) && npm install --cpu=arm64 --os=linux --libc=musl
-
 .PHONY: npm/test
 npm/test:
 	@echo "+ $@"
 	cd $(WORK_DIR) && npm run test
 
+uname_platform := $(shell uname -m)
+uname_os := $(shell uname -s)
+
 .PHONY: build
-build: ## Builds the function
+build: clean ## Builds the function
 	@echo "+ $@"
-	cd $(WORK_DIR) && npm run test && npm run build
+	if [ "$(uname_platform)" != "x86_64" ] || [ "$(uname_os)" != "Linux" ]; then \
+		docker run \
+				--platform linux/amd64 \
+				--rm --workdir /app \
+				--volume ./$(WORK_DIR):/app \
+				--entrypoint sh amazon/aws-lambda-nodejs:24.2025.11.23.13-x86_64 \
+				-c 'npm run test && npm run build && npm install --include=optional --cpu=x64 --os=linux --libc=glibc --prefix ./dist sharp@0.34.5' ; \
+	else \
+		cd $(WORK_DIR) && \
+		npm run test && \
+		npm run build && \
+		npm install --include=optional --cpu=x64 --os=linux --libc=glibc --prefix ./dist sharp@0.34.5 ; \
+	fi
+	cd $(WORK_DIR) && npm run zip
 
 tf: ## Runs `terraform`
 	rm -f $(WORK_DIR)/terraform/.terraform/terraform.tfstate || true
@@ -56,7 +67,7 @@ help: ## Display this help screen
 providers: update ## Upgrades all providers and platform independent dependency locks (slow)
 	@echo "+ $@"
 	@for f in $(TF_FOLDERS) ; do \
-  		echo upgrading: $$f ;\
+  	echo upgrading: $$f ;\
 		terraform -chdir=$$f init -upgrade=true -backend=false;\
 		terraform -chdir=$$f providers lock -platform=darwin_amd64 -platform=darwin_arm64 -platform=linux_amd64 ;\
 	done
@@ -66,8 +77,8 @@ update: ## Upgrades Terraform core, providers and modules constraints recursivel
 	@echo "+ $@"
 	@command -v tfupdate >/dev/null 2>&1 || { echo >&2 "Please install tfupdate: 'brew install minamijoyo/tfupdate/tfupdate'"; exit 1; }
 	@tfupdate terraform -v "~> 1" -r .
-	@tfupdate module -v "7.5.0" registry.terraform.io/moritzzimmer/lambda/aws -r .
-	@tfupdate module -v "7.5.0" registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment -r .
-	@tfupdate provider aws -v "~> 5" -r .
+	@tfupdate module -v "8.4.0" registry.terraform.io/moritzzimmer/lambda/aws -r .
+	@tfupdate module -v "8.4.0" registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment -r .
+	@tfupdate provider aws -v "~> 6" -r .
 	@tfupdate provider opensearch -v "~> 2" -r .
 

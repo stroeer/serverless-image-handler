@@ -67,19 +67,27 @@ The following environment variables are used by the image-handler:
 
 To build the package run:
 
-```make FUNC=image-handler build```
+```shell
+make build
+```
+
+The final package will be located in `source/image-handler/dist/image-handler.zip`.
 
 ### Testing
 
-Run tests using the following Make command:
+Run tests (also installs packages defined in package.json) using the following Make command:
 
-```make npm/test```
+```shell
+make npm/test
+```
 
 ### Infrastructure deployment
 
 Deploy the infrastructure using Terraform with the following Make command:
 
-```make FUNC=image-handler tf```
+```shell
+make tf
+```
 
 ## Special interest section
 
@@ -144,14 +152,7 @@ If required once more, they need to be pulled from the original repository:
 
 ### Updating Sharp version
 
-You need to keep the sharp version in `package.json` and the lambda layer in sync.
+You need to keep the sharp version in both:
 
-First, create a new lambda layer version with the updated sharp version.
-
-```terraform
-locals {
-  sharp_version = "0.34.4"
-}
-```
-
-Then update the function code and create a new lambda version.
+* `package.json`
+* within the `Makefile` (search for `sharp@`)
