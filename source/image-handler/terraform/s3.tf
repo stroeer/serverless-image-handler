@@ -172,7 +172,7 @@ data "aws_iam_policy_document" "deny_insecure_transport" {
   }
 
   statement {
-    actions = ["s3:GetObject", "s3:ListBucket"]
+    actions   = ["s3:GetObject", "s3:ListBucket"]
     resources = [aws_s3_bucket.images[count.index].arn, "${aws_s3_bucket.images[count.index].arn}/audio/*"]
     principals {
       type        = "Service"
@@ -187,16 +187,43 @@ data "aws_iam_policy_document" "deny_insecure_transport" {
   }
 }
 
+/*
+ * for simplicity, images and audio share the same s3 bucket and
+ * thus both robots.txt files are created here
+ */
 resource "aws_s3_object" "robots_txt" {
-  count         = var.app_suffix == "" ? 1 : 0
-  bucket        = aws_s3_bucket.images[count.index].bucket
-  key           = "robots.txt"
+  for_each      = var.app_suffix == "" ? toset(["robots.txt", "audio/robots.txt"]) : []
+  bucket        = aws_s3_bucket.images[0].bucket
+  key           = each.key
   cache_control = "max-age=3600"
-
-  content_type = "text/plain"
-  content      = <<EOF
+  content_type  = "text/plain; charset=utf-8"
+  content       = <<EOF
 User-agent: *
 Disallow: /authors/
 Disallow: /newbiz-product-images/
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: CCBot
+User-agent: Google-Extended
+User-agent: Meta-ExternalAgent
+User-agent: meta-externalagent
+Disallow: /
+
+# Legal notice: t-online.de expressly reserves the right to use its content for commercial text and data mining (§ 44 b UrhG).
+# The use of robots or other automated means to access t-online.de or collect or mine data without
+# the express permission of t-online.de is strictly prohibited.
+# t-online.de may, in its discretion, permit certain automated access to certain t-online.de pages,
+# If you would like to apply for permission to crawl t-online.de, collect or use data, please email t-online@stroeer.de
 EOF
 }
+
