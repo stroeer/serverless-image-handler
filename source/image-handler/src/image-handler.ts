@@ -3,15 +3,7 @@
 
 import sharp, { OverlayOptions, SharpOptions } from 'sharp';
 
-import {
-  ContentTypes,
-  ImageEdits,
-  ImageFitTypes,
-  ImageFormatTypes,
-  ImageHandlerError,
-  ImageRequestInfo,
-  StatusCodes,
-} from './lib';
+import { ContentTypes, ImageEdits, ImageFitTypes, ImageFormatTypes, ImageHandlerError, ImageRequestInfo, StatusCodes, } from './lib';
 import { S3 } from '@aws-sdk/client-s3';
 import { rgbaToThumbHash } from './lib/thumbhash';
 
@@ -76,7 +68,7 @@ export class ImageHandler {
       ImageFormatTypes.AVIF == imageRequestInfo.outputFormat ||
       (undefined === imageRequestInfo.outputFormat && imageRequestInfo.contentType === ContentTypes.AVIF)
     ) {
-      modifiedOutputImage.avif({ quality: 75, effort: 7 });
+      modifiedOutputImage.avif({ quality: 70, effort: 0 });
     }
 
     return modifiedOutputImage;
