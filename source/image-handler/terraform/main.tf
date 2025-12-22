@@ -7,7 +7,7 @@ locals {
 
 module "lambda" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws"
-  version = "8.4.0"
+  version = "8.5.0"
 
   # we experience issues with arm64 and sharp library fucking up avif files
   architectures                    = ["x86_64"]
@@ -85,7 +85,7 @@ resource "aws_lambda_alias" "this" {
 
 module "deployment" {
   source  = "registry.terraform.io/moritzzimmer/lambda/aws//modules/deployment"
-  version = "8.4.0"
+  version = "8.5.0"
 
   alias_name                                  = aws_lambda_alias.this.name
   codebuild_cloudwatch_logs_retention_in_days = 7
