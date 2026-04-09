@@ -16,6 +16,8 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    cooldown:
+      default-days: 8
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -30,6 +32,8 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    cooldown:
+      default-days: 8
 
   - package-ecosystem: "terraform"
     directory: "/source/image-handler/terraform"
@@ -44,3 +48,5 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    cooldown:
+      default-days: 8
