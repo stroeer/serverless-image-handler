@@ -55,6 +55,22 @@ class LogStashFormatter extends LogFormatter {
 
     return logItem;
   }
+
+  /**
+   * Normalizes error attributes before they are logged.
+   * @param error The error to format.
+   * @returns The formatted error attributes with a single, lowercase `code` field.
+   */
+  public formatError(error: Error): LogAttributes {
+    const formattedError = super.formatError(error);
+
+    if (formattedError.Code !== undefined && formattedError.code === undefined) {
+      formattedError.code = formattedError.Code;
+    }
+    delete formattedError.Code;
+
+    return formattedError;
+  }
 }
 
 export { LogStashFormatter };

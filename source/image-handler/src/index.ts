@@ -3,7 +3,7 @@
 
 import { ImageHandler } from './image-handler';
 import { ImageRequest } from './image-request';
-import { Headers, ImageHandlerExecutionResult, StatusCodes } from './lib';
+import { Headers, ImageHandlerExecutionResult, isClientError, StatusCodes } from './lib';
 import { S3 } from '@aws-sdk/client-s3';
 import { APIGatewayProxyEventV2 } from 'aws-lambda';
 import { Logger } from '@aws-lambda-powertools/logger';
@@ -78,11 +78,16 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<ImageHandl
       body: processedRequest,
     };
   } catch (error) {
-    if (error.code && error.code !== 'NoSuchKey') {
+    const { statusCode, headers, body } = getErrorResponse(error);
+
+    // Client errors (4xx: malformed/non-image requests, scanner noise, missing keys) are expected
+    // background traffic; log them quietly so WARN-level logs surface only server-side problems.
+    if (isClientError(error, statusCode)) {
+      logger.debug('Client error during image processing', { error });
+    } else {
       logger.warn('Error occurred during image processing', { error });
     }
 
-    const { statusCode, headers, body } = getErrorResponse(error);
     return {
       statusCode,
       isBase64Encoded: false,
