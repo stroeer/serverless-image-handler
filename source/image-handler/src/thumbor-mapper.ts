@@ -9,6 +9,13 @@ import { ImageEdits, ImageFitTypes, ImageFormatTypes } from './lib';
 export class ThumborMapper {
   private static readonly EMPTY_IMAGE_EDITS: ImageEdits = {};
 
+  // Upper bound (px, longest side) applied to otherwise-unbounded `0x0` resize requests
+  // (e.g. `fit-in/0x0`). Without a bound, sharp returns the image at its full native (cropped)
+  // resolution; for multi-megapixel originals the base64-encoded result exceeds the 6 MB Lambda
+  // payload limit and fails with `TooLargeImageException`. Override via the
+  // `UNBOUNDED_FIT_IN_MAX_DIMENSION` environment variable.
+  private static readonly UNBOUNDED_FIT_IN_MAX_DIMENSION = parseInt(process.env.UNBOUNDED_FIT_IN_MAX_DIMENSION) || 4000;
+
   /**
    * Initializer function for creating a new Thumbor mapping, used by the image
    * handler to perform image modifications based on legacy URL path requests.
@@ -451,8 +458,19 @@ export class ThumborMapper {
         if (width === 0 || height === 0) {
           resizeEdit.resize.fit = ImageFitTypes.INSIDE;
         }
-        resizeEdit.resize.width = width === 0 ? null : width;
-        resizeEdit.resize.height = height === 0 ? null : height;
+
+        if (width === 0 && height === 0) {
+          // `0x0` (e.g. `fit-in/0x0`) requests no resize bound, which would return the image at
+          // its full native (cropped) resolution and can blow past the 6 MB Lambda payload limit.
+          // Clamp the longest side so large images are downscaled to fit; `withoutEnlargement`
+          // leaves images already smaller than the bound untouched (no upscaling).
+          resizeEdit.resize.width = ThumborMapper.UNBOUNDED_FIT_IN_MAX_DIMENSION;
+          resizeEdit.resize.height = ThumborMapper.UNBOUNDED_FIT_IN_MAX_DIMENSION;
+          resizeEdit.resize.withoutEnlargement = true;
+        } else {
+          resizeEdit.resize.width = width === 0 ? null : width;
+          resizeEdit.resize.height = height === 0 ? null : height;
+        }
 
         return resizeEdit;
       }

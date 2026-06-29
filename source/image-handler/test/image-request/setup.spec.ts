@@ -480,4 +480,56 @@ describe('setup', () => {
     expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, { Bucket: 'test', Key: '中文' });
     expect(imageRequestInfo).toEqual(expectedResult);
   });
+
+  it('Should recover a srcset-style request (whole srcset placed into one URL) and serve the first candidate', async () => {
+    // Arrange — the reported failing request: an entire `srcset` value in a single URL
+    const event = build_event({
+      rawPath:
+        '/2022/10/673obCnS14wB/175x0:450x450/fit-in/90x0/rachel-holmes-quelle-gamedistribution.jpg%2090w,%20https://images.t-online.de/2022/10/673obCnS14wB/175x0:450x450/fit-in/180x0/rachel-holmes-quelle-gamedistribution.jpg%20180w',
+    });
+    process.env.SOURCE_BUCKETS = 'allowedBucket001, allowedBucket002';
+
+    // Mock
+    mockS3Client.on(GetObjectCommand).resolves({ Body: sdkStreamFromString('SampleImageContent\n') });
+
+    // Act
+    const imageRequest = new ImageRequest(new S3({}));
+    const imageRequestInfo = await imageRequest.setup(event);
+
+    // Assert — resolves to the first candidate's image and edits instead of throwing a 400
+    expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
+      Bucket: 'allowedBucket001',
+      Key: '2022/10/673obCnS14wB/image.jpg',
+    });
+    expect(imageRequestInfo.requestType).toEqual(RequestTypes.THUMBOR);
+    expect(imageRequestInfo.key).toEqual('2022/10/673obCnS14wB/image.jpg');
+    expect(imageRequestInfo.edits).toEqual({
+      crop: { left: 175, top: 0, width: 450, height: 450 },
+      resize: { fit: 'inside', width: 90, height: null },
+    });
+  });
+
+  it('Should recover a srcset-style request that uses pixel-density descriptors', async () => {
+    // Arrange
+    const event = build_event({
+      rawPath:
+        '/2026/06/1Ff18x3yYonF/0x222:4283x2409/fit-in/168x0/joshua-kimmich.jpg%201x,%20https://images.t-online.de/2026/06/1Ff18x3yYonF/0x222:4283x2409/fit-in/336x0/joshua-kimmich.jpg%202x',
+    });
+    process.env.SOURCE_BUCKETS = 'allowedBucket001, allowedBucket002';
+
+    // Mock
+    mockS3Client.on(GetObjectCommand).resolves({ Body: sdkStreamFromString('SampleImageContent\n') });
+
+    // Act
+    const imageRequest = new ImageRequest(new S3({}));
+    const imageRequestInfo = await imageRequest.setup(event);
+
+    // Assert
+    expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
+      Bucket: 'allowedBucket001',
+      Key: '2026/06/1Ff18x3yYonF/image.jpg',
+    });
+    expect(imageRequestInfo.requestType).toEqual(RequestTypes.THUMBOR);
+    expect(imageRequestInfo.key).toEqual('2026/06/1Ff18x3yYonF/image.jpg');
+  });
 });
