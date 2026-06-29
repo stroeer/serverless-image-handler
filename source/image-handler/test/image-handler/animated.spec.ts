@@ -153,6 +153,34 @@ describe('animated', () => {
     });
   });
 
+  it('Should cap decoded frames when the animation exceeds the frame guard', async () => {
+    // Arrange — force the cap to 1 frame so the 2-page fixture trips the guard
+    process.env.MAX_ANIMATED_FRAMES = '1';
+    const request: ImageRequestInfo = {
+      requestType: RequestTypes.DEFAULT,
+      contentType: ContentTypes.GIF,
+      bucket: 'sample-bucket',
+      key: 'sample-image-001.gif',
+      edits: { grayscale: true },
+      originalImage: gifImage,
+    };
+
+    // Act
+    const imageHandler = new ImageHandler(s3Client);
+    const instantiateSpy = jest.spyOn<any, 'instantiateSharpImage'>(imageHandler, 'instantiateSharpImage');
+    await imageHandler.process(request);
+
+    // Assert — re-instantiated with an explicit page cap, animation semantics preserved
+    expect(instantiateSpy).toHaveBeenCalledTimes(2);
+    expect(instantiateSpy).toHaveBeenLastCalledWith(request.originalImage, request.edits, {
+      failOn: 'none',
+      animated: true,
+      pages: 1,
+    });
+
+    delete process.env.MAX_ANIMATED_FRAMES;
+  });
+
   it('Should attempt to create animated image if animated edit is set to true, regardless of original image and content type', async () => {
     // Arrange
     const request: ImageRequestInfo = {
