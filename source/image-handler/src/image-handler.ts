@@ -3,12 +3,22 @@
 
 import sharp, { OverlayOptions, SharpOptions } from 'sharp';
 
-import { ContentTypes, ImageEdits, ImageFitTypes, ImageFormatTypes, ImageHandlerError, ImageRequestInfo, StatusCodes, } from './lib';
+import {
+  ContentTypes,
+  ImageEdits,
+  ImageFitTypes,
+  ImageFormatTypes,
+  ImageHandlerError,
+  ImageRequestInfo,
+  StatusCodes,
+} from './lib';
 import { S3 } from '@aws-sdk/client-s3';
 import { rgbaToThumbHash } from './lib/thumbhash';
 
 export class ImageHandler {
   private readonly LAMBDA_PAYLOAD_LIMIT = 6 * 1024 * 1024;
+  private readonly MAX_ANIMATED_PIXELS = parseInt(process.env.MAX_ANIMATED_PIXELS) || 5_000_000;
+  private readonly MAX_ANIMATED_FRAMES = parseInt(process.env.MAX_ANIMATED_FRAMES) || 100;
 
   constructor(private readonly s3Client: S3) {}
 
@@ -97,6 +107,16 @@ export class ImageHandler {
         if (!metadata.pages || metadata.pages <= 1) {
           options.animated = false;
           image = await this.instantiateSharpImage(originalImage, edits, options);
+        } else {
+          const perFramePixels = (metadata.width ?? 1) * (metadata.pageHeight ?? metadata.height ?? 1);
+          const maxFrames = Math.min(
+            this.MAX_ANIMATED_FRAMES,
+            Math.max(1, Math.floor(this.MAX_ANIMATED_PIXELS / perFramePixels)),
+          );
+          if (metadata.pages > maxFrames) {
+            options.pages = maxFrames;
+            image = await this.instantiateSharpImage(originalImage, edits, options);
+          }
         }
       }
 

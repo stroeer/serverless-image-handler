@@ -27,10 +27,13 @@ module "lambda" {
 
   environment = {
     variables = {
-      AUTO_WEBP      = "Yes"
-      CORS_ENABLED   = "Yes"
-      CORS_ORIGIN    = "*"
-      SOURCE_BUCKETS = "master-images-${var.account_id}-${var.region}"
+      AUTO_WEBP                      = "Yes"
+      CORS_ENABLED                   = "Yes"
+      CORS_ORIGIN                    = "*"
+      SOURCE_BUCKETS                 = "master-images-${var.account_id}-${var.region}"
+      UNBOUNDED_FIT_IN_MAX_DIMENSION = "4000"
+      MAX_ANIMATED_PIXELS            = "5000000"
+      MAX_ANIMATED_FRAMES            = "100"
     }
   }
 
