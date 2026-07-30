@@ -35,15 +35,20 @@ export class ImageHandler {
     edits: ImageEdits,
     options: SharpOptions,
   ): Promise<sharp.Sharp> {
-    let image: sharp.Sharp;
+    // Bake the EXIF Orientation into the pixels and clear the tag, so output looks upright in
+    // every engine (Blink ignores WebP EXIF orientation; WebKit honors it). No-op when orientation
+    // is 1/absent. Must run before resize/crop so those act on oriented dimensions. autoOrient()
+    // wins over keepMetadata(), so the stale orientation tag is not re-attached.
+    const image = sharp(originalImage, options).autoOrient().keepIccProfile().keepMetadata();
 
-    if (edits && edits.rotate !== undefined && edits.rotate === null) {
-      image = sharp(originalImage, options);
-    } else {
-      const metadata = await sharp(originalImage, options).metadata();
-      image = metadata.orientation
-        ? sharp(originalImage, options).withMetadata({ orientation: metadata.orientation })
-        : sharp(originalImage, options).withMetadata();
+    if (edits?.stripExif) {
+      // Replace EXIF with a minimal tag; leave the ICC profile untouched.
+      image.keepIccProfile().withExif({ IFD0: { Software: 'ströer image-handler' } });
+    }
+
+    if (edits?.stripIcc) {
+      // Normalize the color profile to sRGB (drops the embedded ICC); leave EXIF untouched.
+      image.keepExif().withIccProfile('srgb');
     }
 
     return image;
@@ -208,7 +213,11 @@ export class ImageHandler {
     if (resize.ratio) {
       const ratio = resize.ratio;
 
-      const { width, height } = resize.width && resize.height ? resize : await originalImage.metadata();
+      const meta = resize.width && resize.height ? resize : await originalImage.metadata();
+      // metadata() reports pre-autoOrient dims, so swap for 90/270 rotations (orientation 5-8).
+      const swap = typeof meta.orientation === 'number' && meta.orientation >= 5;
+      const width = swap ? meta.height : meta.width;
+      const height = swap ? meta.width : meta.height;
 
       resize.width = Math.round(width * ratio);
       resize.height = Math.round(height * ratio);

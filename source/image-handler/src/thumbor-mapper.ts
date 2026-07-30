@@ -356,9 +356,12 @@ export class ThumborMapper {
         this.mapStretch(currentEdits);
         break;
       }
-      case 'strip_exif':
+      case 'strip_exif': {
+        currentEdits.stripExif = true;
+        break;
+      }
       case 'strip_icc': {
-        currentEdits.rotate = null;
+        currentEdits.stripIcc = true;
         break;
       }
       case 'upscale': {
