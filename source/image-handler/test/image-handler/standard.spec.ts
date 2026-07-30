@@ -9,7 +9,10 @@ import { ImageHandler } from '../../src/image-handler';
 
 const s3Client = new S3();
 const image = fs.readFileSync('./test/image/25x15.png');
-const withMetatdataSpy = jest.spyOn(sharp.prototype, 'withMetadata');
+const autoOrientSpy = jest.spyOn(sharp.prototype, 'autoOrient');
+const keepMetadataSpy = jest.spyOn(sharp.prototype, 'keepMetadata');
+const withExifSpy = jest.spyOn(sharp.prototype, 'withExif');
+const withIccProfileSpy = jest.spyOn(sharp.prototype, 'withIccProfile');
 
 describe('standard', () => {
   it('Should pass if a series of standard edits are provided to the function', async () => {
@@ -39,50 +42,46 @@ describe('instantiateSharpImage', () => {
     jest.clearAllMocks();
   });
 
-  it('Should not include metadata if the rotation is null', async () => {
+  it('Should auto-orient and keep metadata by default, without stripping EXIF or ICC', async () => {
     // Arrange
-    const edits = {
-      rotate: null,
-    };
     const options: SharpOptions = { failOn: 'none' };
     const imageHandler = new ImageHandler(s3Client);
 
     // Act
-    await imageHandler['instantiateSharpImage'](image, edits, options);
+    await imageHandler['instantiateSharpImage'](image, {}, options);
 
     //Assert
-    expect(withMetatdataSpy).not.toHaveBeenCalled();
+    expect(autoOrientSpy).toHaveBeenCalled();
+    expect(keepMetadataSpy).toHaveBeenCalled();
+    expect(withExifSpy).not.toHaveBeenCalled();
+    expect(withIccProfileSpy).not.toHaveBeenCalled();
   });
 
-  it('Should include metadata and not define orientation if the rotation is not null and orientation is not defined', async () => {
+  it('Should strip EXIF but keep the ICC profile when stripExif is set', async () => {
     // Arrange
-    const edits = {
-      rotate: undefined,
-    };
     const options: SharpOptions = { failOn: 'none' };
     const imageHandler = new ImageHandler(s3Client);
 
     // Act
-    await imageHandler['instantiateSharpImage'](image, edits, options);
+    await imageHandler['instantiateSharpImage'](image, { stripExif: true }, options);
 
     //Assert
-    expect(withMetatdataSpy).toHaveBeenCalled();
-    expect(withMetatdataSpy).not.toHaveBeenCalledWith(expect.objectContaining({ orientation: expect.anything }));
+    expect(autoOrientSpy).toHaveBeenCalled();
+    expect(withExifSpy).toHaveBeenCalled();
+    expect(withIccProfileSpy).not.toHaveBeenCalled();
   });
 
-  it('Should include orientation metadata if the rotation is defined in the metadata', async () => {
+  it('Should strip the ICC profile but keep EXIF when stripIcc is set', async () => {
     // Arrange
-    const edits = {
-      rotate: undefined,
-    };
     const options: SharpOptions = { failOn: 'none' };
-    const modifiedImage = await sharp(image).withMetadata({ orientation: 1 }).toBuffer();
     const imageHandler = new ImageHandler(s3Client);
 
     // Act
-    await imageHandler['instantiateSharpImage'](modifiedImage, edits, options);
+    await imageHandler['instantiateSharpImage'](image, { stripIcc: true }, options);
 
     //Assert
-    expect(withMetatdataSpy).toHaveBeenCalledWith({ orientation: 1 });
+    expect(autoOrientSpy).toHaveBeenCalled();
+    expect(withIccProfileSpy).toHaveBeenCalledWith('srgb');
+    expect(withExifSpy).not.toHaveBeenCalled();
   });
 });
