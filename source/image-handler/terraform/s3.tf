@@ -214,7 +214,6 @@ Disallow: /
 User-agent: Applebot-Extended
 User-agent: Bytespider
 User-agent: CCBot
-User-agent: Google-Extended
 User-agent: Meta-ExternalAgent
 User-agent: meta-externalagent
 Disallow: /

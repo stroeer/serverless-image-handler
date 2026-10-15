@@ -9,6 +9,7 @@ import {
   ImageFormatTypes,
   ImageHandlerError,
   ImageRequestInfo,
+  isClientError,
   RequestTypes,
   StatusCodes,
 } from './lib';
@@ -92,6 +93,11 @@ export class ImageRequest {
    */
   public async setup(event: APIGatewayProxyEventV2): Promise<ImageRequestInfo> {
     try {
+      // Recover requests where a whole `srcset` value was placed into a single image URL
+      // (see fixSrcSetPath). Sanitizing once here means every downstream parser
+      // (request type, key, edits) operates on the first, valid candidate.
+      event = { ...event, rawPath: ImageRequest.fixSrcSetPath(event.rawPath) };
+
       let imageRequestInfo: ImageRequestInfo = <ImageRequestInfo>{};
 
       imageRequestInfo.requestType = this.parseRequestType(event);
@@ -132,12 +138,29 @@ export class ImageRequest {
 
       return imageRequestInfo;
     } catch (error) {
-      if (error.code && error.code !== 'NoSuchKey') {
+      if (isClientError(error)) {
+        logger.debug('Client error while setting up the image request. Error: ', error);
+      } else {
         logger.warn('Error occurred while setting up the image request. Error: ', error);
       }
 
       throw error;
     }
+  }
+
+  /**
+   * fixes image source set requests that somehow reach the image handler
+   * @param rawPath The raw request path.
+   * @returns The sanitized path, or the original path if it is not a srcset-style request.
+   */
+  public static fixSrcSetPath(rawPath: string): string {
+    // Bounded quantifiers on the descriptor digits and a single greedy `[\s\S]*$` tail (instead
+    // of the ambiguous `(?:[\s,].*)?$`) keep this linear — avoiding the polynomial backtracking
+    // CodeQL flags for a regex run on uncontrolled request input.
+    return (rawPath ?? '').replace(
+      /(\.(?:jpe?g|png|webp|tiff?|svg|gif|avif))(?:%20|\s)\d{1,6}(?:\.\d{1,4})?[wx][\s\S]*$/i,
+      '$1',
+    );
   }
 
   /**

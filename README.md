@@ -56,12 +56,15 @@ For more details see the [Usage](docs/Usage.md) documentation.
 
 The following environment variables are used by the image-handler:
 
-| Name                      | Description                                     |
-|---------------------------|-------------------------------------------------|
-| `AUTO_WEBP`               | Flag if the AUTO WEBP feature should be enabled |
-| `CORS_ENABLED`            | Flag if CORS should be enabled                  |
-| `CORS_ORIGIN`             | CORS origin.                                    |
-| `SOURCE_BUCKETS`          | S3 Bucket with source images                    |
+| Name                             | Description                                                                                                                                                                  | Default     |
+|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| `AUTO_WEBP`                      | Flag if the AUTO WEBP feature should be enabled                                                                                                                              | –           |
+| `CORS_ENABLED`                   | Flag if CORS should be enabled                                                                                                                                               | –           |
+| `CORS_ORIGIN`                    | CORS origin.                                                                                                                                                                 | –           |
+| `SOURCE_BUCKETS`                 | S3 Bucket with source images                                                                                                                                                 | –           |
+| `UNBOUNDED_FIT_IN_MAX_DIMENSION` | Max longest side (px) for unbounded `fit-in/0x0` requests. Without a bound the image is returned at full native resolution and can exceed the 6 MB Lambda payload limit (`TooLargeImageException`). Only downscales; smaller images pass through untouched. | `4000`      |
+| `MAX_ANIMATED_PIXELS`            | Pixel budget for animated images (GIF/animated WebP). The number of decoded frames is capped to `MAX_ANIMATED_PIXELS / (frameWidth × frameHeight)` so high-frame-count animations stay under the payload limit. Excess frames are dropped (animation truncated). | `5000000`   |
+| `MAX_ANIMATED_FRAMES`            | Absolute upper bound on decoded frames for animated images, applied alongside `MAX_ANIMATED_PIXELS`.                                                                        | `100`       |
 
 ### Building
 

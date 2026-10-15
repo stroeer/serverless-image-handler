@@ -90,7 +90,7 @@ describe('resize', () => {
     expect(edits).toEqual(expectedResult.edits);
   });
 
-  it('Should pass if the proper edit translations are applied and in the correct order', () => {
+  it('Should clamp an unbounded 0x0 request to the max dimension without enlarging', () => {
     // Arrange
     const path = '/0x0/test-image-001.jpg';
 
@@ -100,7 +100,7 @@ describe('resize', () => {
 
     // Assert
     const expectedResult = {
-      edits: { resize: { width: null, height: null, fit: 'inside' } },
+      edits: { resize: { width: 4000, height: 4000, fit: 'inside', withoutEnlargement: true } },
     };
     expect(edits).toEqual(expectedResult.edits);
   });

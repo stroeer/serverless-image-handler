@@ -8,7 +8,7 @@ import { ImageEdits, ImageFitTypes, ImageFormatTypes } from './lib';
 
 export class ThumborMapper {
   private static readonly EMPTY_IMAGE_EDITS: ImageEdits = {};
-
+  private static readonly UNBOUNDED_FIT_IN_MAX_DIMENSION = parseInt(process.env.UNBOUNDED_FIT_IN_MAX_DIMENSION) || 4000;
   /**
    * Initializer function for creating a new Thumbor mapping, used by the image
    * handler to perform image modifications based on legacy URL path requests.
@@ -356,9 +356,12 @@ export class ThumborMapper {
         this.mapStretch(currentEdits);
         break;
       }
-      case 'strip_exif':
+      case 'strip_exif': {
+        currentEdits.stripExif = true;
+        break;
+      }
       case 'strip_icc': {
-        currentEdits.rotate = null;
+        currentEdits.stripIcc = true;
         break;
       }
       case 'upscale': {
@@ -451,8 +454,14 @@ export class ThumborMapper {
         if (width === 0 || height === 0) {
           resizeEdit.resize.fit = ImageFitTypes.INSIDE;
         }
-        resizeEdit.resize.width = width === 0 ? null : width;
-        resizeEdit.resize.height = height === 0 ? null : height;
+        if (width === 0 && height === 0) {
+          resizeEdit.resize.width = ThumborMapper.UNBOUNDED_FIT_IN_MAX_DIMENSION;
+          resizeEdit.resize.height = ThumborMapper.UNBOUNDED_FIT_IN_MAX_DIMENSION;
+          resizeEdit.resize.withoutEnlargement = true;
+        } else {
+          resizeEdit.resize.width = width === 0 ? null : width;
+          resizeEdit.resize.height = height === 0 ? null : height;
+        }
 
         return resizeEdit;
       }
