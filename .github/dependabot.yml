@@ -1,52 +1,43 @@
+# Dependabot rules for repos with GitHub topic "buzz"; entries for ecosystems a repo does not use are left out.
+# Version updates: monthly, all updates (incl. majors) in one PR per ecosystem.
+# Security updates: immediately, one PR per ecosystem across all directories.
 version: 2
-
 updates:
-  # Enable version updates for npm
-  - package-ecosystem: "npm"
-    # Look for `package.json` and `lock` files in this directory
-    directory: "/source/image-handler/"
-    schedule:
-      interval: "weekly"
-    reviewers:
-      - "stroeer/teams/buzz-end"
-    groups:
-      npm:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-    cooldown:
-      default-days: 8
-
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories: ["/", "/.github/actions/*"]
     schedule:
-      interval: "weekly"
-    reviewers:
-      - "stroeer/teams/buzz-end"
-    groups:
-      github-actions:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
+      interval: "monthly"
     cooldown:
       default-days: 8
+    groups:
+      github-actions-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "npm"
+    directories: ["**/*"]
+    schedule:
+      interval: "monthly"
+    cooldown:
+      default-days: 8
+    groups:
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      npm:
+        patterns: ["*"]
 
   - package-ecosystem: "terraform"
-    directory: "/source/image-handler/terraform"
+    directories: ["**/*"]
     schedule:
-      interval: "weekly"
-    reviewers:
-      - "stroeer/teams/buzz-end"
-    groups:
-      terraform-image-handler:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
+      interval: "monthly"
     cooldown:
       default-days: 8
+    groups:
+      terraform-security:
+        applies-to: security-updates
+        patterns: ["*"]
+      terraform:
+        patterns: ["*"]
