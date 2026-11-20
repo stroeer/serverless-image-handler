@@ -280,6 +280,7 @@ export class ImageRequest {
           .replace(/\/__WIDTH__x0\//, '/1200x0/')
           .replace(/\/\d+x\d+:\d+x\d+(?=\/)/g, '')
           .replace(/\/\d+x\d+(?=\/)/g, '')
+          // watermark is no longer supported, but its args may contain `/`, so strip it whole to keep old URLs resolving
           .replace(/filters:watermark\(.*\)/u, '')
           .replace(/filters:[^/]+/g, '')
           .replace(/\/fit-in(?=\/)/g, '')
