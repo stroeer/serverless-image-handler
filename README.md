@@ -1,6 +1,6 @@
 # Serverless Image Handler Readme
 
-The serverless-image-handler mono repository contains the source code and documentation for the [image-handler](#image-handler) and [image-thumbs](#image-thumbs) AWS Lambda functions.
+The serverless-image-handler repository contains the source code and documentation for the [image-handler](#image-handler) AWS Lambda function.
 
 ## Table of Contents
 
@@ -14,12 +14,6 @@ The serverless-image-handler mono repository contains the source code and docume
     - [Building](#building)
     - [Testing](#testing)
     - [Infrastructure deployment](#infrastructure-deployment)
-- [Image Thumbs](#image-thumbs)
-    - [Overview](#overview-1)
-    - [Prerequisites](#prerequisites-1)
-    - [Building](#building-1)
-    - [Test / Invoke](#test--invoke)
-    - [Infrastructure deployment](#infrastructure-deployment-1)
 
 ### Architecture
 

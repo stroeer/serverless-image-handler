@@ -253,29 +253,6 @@ export class ThumborMapper {
     currentEdits.resize.fit = ImageFitTypes.INSIDE;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private mapWatermark(filterValue: string, currentEdits: Record<string, any>): void {
-    const options = filterValue.replace(/\s+/g, '').split(',');
-    const [bucket, key, xPos, yPos, alpha, wRatio, hRatio] = options;
-
-    currentEdits.overlayWith = {
-      bucket,
-      key,
-      alpha,
-      wRatio,
-      hRatio,
-      options: {},
-    };
-
-    const allowedPosPattern = /^(100|[1-9]?\d|-(100|[1-9]\d?))p$/;
-    if (allowedPosPattern.test(xPos) || !isNaN(Number(xPos))) {
-      currentEdits.overlayWith.options.left = xPos;
-    }
-    if (allowedPosPattern.test(yPos) || !isNaN(Number(yPos))) {
-      currentEdits.overlayWith.options.top = yPos;
-    }
-  }
-
   /**
    * Scanner function for matching supported Thumbor filters and converting their capabilities into sharp.js supported operations.
    * @param filterExpression The URL path filter.
@@ -366,10 +343,6 @@ export class ThumborMapper {
       }
       case 'upscale': {
         this.mapUpscale(currentEdits);
-        break;
-      }
-      case 'watermark': {
-        this.mapWatermark(filterValue, currentEdits);
         break;
       }
       case 'animated': {
