@@ -63,7 +63,7 @@ CI (`.github/workflows/deploy.yml`) runs `make build` on every PR and push to `m
 - **The sharp version is pinned in two places**: `package.json` and the `sharp@x.y.z` install in `Makefile`. Bump both together.
 - `@aws-sdk/client-s3` is external in `tsup.config.ts` because the Lambda runtime provides it. `color` and `color-name` are bundled through `noExternal`.
 - Lambda responses are capped at 6 MB. Output size limits (unbounded `fit-in`, animated frame caps) exist for this reason, so keep them in place.
-- The S3 key's file name is ignored and every image is stored as `image.<ext>`. Crop syntax is `crop=left,top,width,height`, not Thumbor's `right,bottom`.
+- The S3 key's file name is ignored and every image is stored as `image.<ext>`. Crop syntax is `/leftxtop:widthxheight/`, where the values after `:` are width and height, not Thumbor's right/bottom coordinates.
 - Error responses are cached by the CDN: 400/403/404 for 1 hour, 410/413 for 1 year, 5xx not at all. 4xx are logged only at debug level. A 4xx returned by mistake stays cached, so use 5xx for server-side failures.
 - Unknown filters are silently ignored (`mapFilter` has no `default`). A typo in a filter name produces no error.
 - Edits are applied in the key order of the edits object, i.e. the order the mapper inserted them. Resize always runs first.
