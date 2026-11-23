@@ -35,6 +35,13 @@ describe('ai content', () => {
     expect(await xmpOf({ aiContent: true })).toContain(DIGITAL_SOURCE_TYPE);
   });
 
+  it('Should write the XMP after roundCrop replaced the sharp pipeline', async () => {
+    const originalImage = fs.readFileSync('./test/image/25x15.png'); // trim() needs >= 3x3
+    expect(
+      await xmpOf({ aiContent: true, originalImage, contentType: 'image/png', edits: { roundCrop: true } }),
+    ).toContain(DIGITAL_SOURCE_TYPE);
+  });
+
   it('Should not write the XMP for regular images', async () => {
     expect(await xmpOf({ aiContent: false, outputFormat: ImageFormatTypes.JPEG })).toBeUndefined();
   });
