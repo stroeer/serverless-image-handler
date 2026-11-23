@@ -31,6 +31,7 @@ export interface ImageRequestInfo {
   cacheControl?: string;
   outputFormat?: ImageFormatTypes;
   effort?: number;
+  aiContent?: boolean;
 }
 
 export interface RekognitionCompatibleImage {

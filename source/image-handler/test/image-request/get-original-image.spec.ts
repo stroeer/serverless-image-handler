@@ -33,6 +33,18 @@ describe('getOriginalImage', () => {
       Key: 'validKey',
     });
     expect(result.originalImage).toEqual(Buffer.from('SampleImageContent\n'));
+    expect(result.aiContent).toBeUndefined();
+  });
+
+  it('Should flag AI content from the flag_ai_content S3 metadata', async () => {
+    mockS3Client.on(GetObjectCommand).resolves({
+      Body: sdkStreamFromString('SampleImageContent\n'),
+      Metadata: { flag_ai_content: 'true' },
+    });
+
+    const result = await new ImageRequest(s3Client).getOriginalImage('validBucket', 'validKey');
+
+    expect(result.aiContent).toBe(true);
   });
 
   it('Should throw an error if an invalid file signature is found, simulating an unsupported image type', async () => {

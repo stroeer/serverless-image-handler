@@ -121,6 +121,13 @@ resulting in the same response.
   - reduces the `Cache-Control: max-age` according to the `Expires` header to handle expired content
   - Also, once the Expires header is reached, the image-handler will return a `http/410 (GONE)` status code 
 
+### AI content labelling
+
+- Originals with the S3 metadata `flag_ai_content: true` (set by peruggia for media the CMS flags as AI content) get
+  XMP `Iptc4xmpExt:DigitalSourceType = http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia`
+- This replaces any XMP of the original; EXIF, ICC and IPTC are kept
+- GIF output carries no XMP (libvips' GIF encoder doesn't write it)
+
 ### Additional filter: thumbhash
 
 - `/filters:thumbhash()/` will trigger a hash-based thumbnail generation. See https://evanw.github.io/thumbhash/
