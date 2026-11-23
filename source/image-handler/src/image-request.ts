@@ -24,6 +24,7 @@ type OriginalImageInfo = Partial<{
   lastModified: Date;
   cacheControl: string;
   originalImage: Buffer;
+  aiContent: boolean;
 }>;
 
 export class ImageRequest {
@@ -218,6 +219,10 @@ export class ImageRequest {
 
       result.cacheControl = originalImage.CacheControl ?? 'max-age=31536000';
       result.originalImage = imageBuffer;
+      // set by peruggia for media the CMS flags as AI content (EU AI Act labelling)
+      if (originalImage.Metadata?.['flag_ai_content'] === 'true') {
+        result.aiContent = true;
+      }
 
       return result;
     } catch (error) {
