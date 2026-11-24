@@ -477,106 +477,9 @@ describe('filter', () => {
     expect(edits).toEqual(expectedResult);
   });
 
-  it('Should pass if the filter is successfully translated from Thumbor:watermark()', () => {
-    // Arrange
-    const edit = 'filters:watermark(bucket,key,100,100,0)';
-    const filetype = ImageFormatTypes.JPG;
 
-    // Act
-    const thumborMapper = new ThumborMapper();
-    const edits = thumborMapper.mapFilter(edit, filetype);
 
-    // Assert
-    const expectedResult = {
-      overlayWith: {
-        bucket: 'bucket',
-        key: 'key',
-        alpha: '0',
-        wRatio: undefined,
-        hRatio: undefined,
-        options: {
-          left: '100',
-          top: '100',
-        },
-      },
-    };
-    expect(edits).toEqual(expectedResult);
-  });
 
-  it('Should pass if the filter is successfully translated from Thumbor:watermark()', () => {
-    // Arrange
-    const edit = 'filters:watermark(bucket,key,50p,30p,0)';
-    const filetype = ImageFormatTypes.JPG;
-
-    // Act
-    const thumborMapper = new ThumborMapper();
-    const edits = thumborMapper.mapFilter(edit, filetype);
-
-    // Assert
-    const expectedResult = {
-      overlayWith: {
-        bucket: 'bucket',
-        key: 'key',
-        alpha: '0',
-        wRatio: undefined,
-        hRatio: undefined,
-        options: {
-          left: '50p',
-          top: '30p',
-        },
-      },
-    };
-    expect(edits).toEqual(expectedResult);
-  });
-
-  it('Should pass if the filter is successfully translated from Thumbor:watermark()', () => {
-    // Arrange
-    const edit = 'filters:watermark(bucket,key,x,x,0)';
-    const filetype = ImageFormatTypes.JPG;
-
-    // Act
-    const thumborMapper = new ThumborMapper();
-    const edits = thumborMapper.mapFilter(edit, filetype);
-
-    // Assert
-    const expectedResult = {
-      overlayWith: {
-        bucket: 'bucket',
-        key: 'key',
-        alpha: '0',
-        wRatio: undefined,
-        hRatio: undefined,
-        options: {},
-      },
-    };
-    expect(edits).toEqual(expectedResult);
-  });
-
-  it('Should pass if the filter is successfully translated from Thumbor:watermark()', () => {
-    // Arrange
-    const edit = 'filters:watermark(bucket,key,100,100,0,10,10)';
-    const filetype = ImageFormatTypes.JPG;
-
-    // Act
-    const thumborMapper = new ThumborMapper();
-    const edits = thumborMapper.mapFilter(edit, filetype);
-
-    // Assert
-    const expectedResult = {
-      overlayWith: {
-        bucket: 'bucket',
-        key: 'key',
-        alpha: '0',
-        wRatio: '10',
-        hRatio: '10',
-        options: {
-          left: '100',
-          top: '100',
-        },
-      },
-    };
-    expect(edits).toEqual(expectedResult);
-  });
 
   it('Should pass if undefined is returned for an unsupported filter', () => {
     // Arrange
@@ -653,7 +556,7 @@ describe('filter', () => {
     expect(edits).toEqual(expectedResult.edits);
   });
 
-  it('Should pass for fit-in combined with watermark in folder', () => {
+  it('Should ignore watermark in folder combined with fit-in', () => {
     // watermark params: bucket, key, xPos, yPos, alpha, wRatio, hRatio
     const path = '/fit-in/400x400/filters:watermark(bucket,folder/key.png,0,0)/image.jpg';
 
@@ -669,23 +572,12 @@ describe('filter', () => {
           height: 400,
           fit: 'inside',
         },
-        overlayWith: {
-          bucket: 'bucket',
-          key: 'folder/key.png',
-          alpha: undefined,
-          wRatio: undefined,
-          hRatio: undefined,
-          options: {
-            left: '0',
-            top: '0',
-          },
-        },
       },
     };
     expect(edits).toEqual(expectedResult.edits);
   });
 
-  it('Should pass for fit-in combined with watermark not in folder', () => {
+  it('Should ignore watermark not in folder combined with fit-in', () => {
     // watermark params: bucket, key, xPos, yPos, alpha, wRatio, hRatio
     const path = '/fit-in/400x400/filters:watermark(bucket,key.png,0,0)/image.jpg';
 
@@ -700,17 +592,6 @@ describe('filter', () => {
           width: 400,
           height: 400,
           fit: 'inside',
-        },
-        overlayWith: {
-          bucket: 'bucket',
-          key: 'key.png',
-          alpha: undefined,
-          wRatio: undefined,
-          hRatio: undefined,
-          options: {
-            left: '0',
-            top: '0',
-          },
         },
       },
     };

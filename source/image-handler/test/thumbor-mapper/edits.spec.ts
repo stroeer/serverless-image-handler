@@ -104,7 +104,7 @@ describe('edits', () => {
     expect(edits).toEqual(expectedResult.edits);
   });
 
-  it('Should pass even if there are slashes in the filter', () => {
+  it('Should ignore watermark even if there are slashes in it', () => {
     const path = '/filters:watermark(bucket,folder/key.png,0,0)/image.jpg';
 
     // Act
@@ -113,19 +113,7 @@ describe('edits', () => {
 
     // Assert
     const expectedResult = {
-      edits: {
-        overlayWith: {
-          alpha: undefined,
-          bucket: 'bucket',
-          hRatio: undefined,
-          key: 'folder/key.png',
-          options: {
-            left: '0',
-            top: '0',
-          },
-          wRatio: undefined,
-        },
-      },
+      edits: {},
     };
     expect(edits).toEqual(expectedResult.edits);
   });

@@ -15,6 +15,15 @@ import {
 import { S3 } from '@aws-sdk/client-s3';
 import { rgbaToThumbHash } from './lib/thumbhash';
 
+// IPTC DigitalSourceType marking AI-generated media, see https://cv.iptc.org/newscodes/digitalsourcetype/
+const AI_CONTENT_XMP = `<x:xmpmeta xmlns:x="adobe:ns:meta/">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="" xmlns:Iptc4xmpExt="http://iptc.org/std/Iptc4xmpExt/2008-02-29/">
+   <Iptc4xmpExt:DigitalSourceType>http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia</Iptc4xmpExt:DigitalSourceType>
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>`;
+
 export class ImageHandler {
   private readonly LAMBDA_PAYLOAD_LIMIT = 6 * 1024 * 1024;
   private readonly MAX_ANIMATED_PIXELS = parseInt(process.env.MAX_ANIMATED_PIXELS) || 5_000_000;
@@ -84,6 +93,10 @@ export class ImageHandler {
       (undefined === imageRequestInfo.outputFormat && imageRequestInfo.contentType === ContentTypes.AVIF)
     ) {
       modifiedOutputImage.avif({ quality: 70, effort: 0 });
+    }
+
+    if (imageRequestInfo.aiContent) {
+      modifiedOutputImage.withXmp(AI_CONTENT_XMP);
     }
 
     return modifiedOutputImage;

@@ -1,6 +1,6 @@
 # Serverless Image Handler Readme
 
-The serverless-image-handler mono repository contains the source code and documentation for the [image-handler](#image-handler) and [image-thumbs](#image-thumbs) AWS Lambda functions.
+The serverless-image-handler repository contains the source code and documentation for the [image-handler](#image-handler) AWS Lambda function.
 
 ## Table of Contents
 
@@ -14,12 +14,6 @@ The serverless-image-handler mono repository contains the source code and docume
     - [Building](#building)
     - [Testing](#testing)
     - [Infrastructure deployment](#infrastructure-deployment)
-- [Image Thumbs](#image-thumbs)
-    - [Overview](#overview-1)
-    - [Prerequisites](#prerequisites-1)
-    - [Building](#building-1)
-    - [Test / Invoke](#test--invoke)
-    - [Infrastructure deployment](#infrastructure-deployment-1)
 
 ### Architecture
 
@@ -126,6 +120,13 @@ resulting in the same response.
 - Our solution:
   - reduces the `Cache-Control: max-age` according to the `Expires` header to handle expired content
   - Also, once the Expires header is reached, the image-handler will return a `http/410 (GONE)` status code 
+
+### AI content labelling
+
+- Originals with the S3 metadata `flag_ai_content: true` (set by peruggia for media the CMS flags as AI content) get
+  XMP `Iptc4xmpExt:DigitalSourceType = http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia`
+- This replaces any XMP of the original; EXIF, ICC and IPTC are kept
+- GIF output carries no XMP (libvips' GIF encoder doesn't write it)
 
 ### Additional filter: thumbhash
 
